@@ -967,9 +967,12 @@ async function findRoute(){
   state.loading=true;state.err="";state.routes=null;render();
   try{
     const s=await getFrom();
-    const [loc,ko]=await Promise.all([odsay(s,state.to,OD_LANG[L()]),odsay(s,state.to,0)]);
-    const pl=(loc.path||[]), pk=(ko.path||[]);
-    state.routes=pl.slice(0,5).map((p,i)=>({loc:p,ko:(pk[i]&&pk[i].subPath.length===p.subPath.length)?pk[i]:p,start:s}));
+    // Free ODsay plan = 30 calls/day: one Korean call per search, cached 10 min; names are translated in the app
+    const ck=`${s.lat.toFixed(3)},${s.lng.toFixed(3)}>${state.to.lat.toFixed(4)},${state.to.lng.toFixed(4)}`;
+    let ko=null; try{const c=JSON.parse(sessionStorage.getItem("gilbeot.rt")||"{}");if(c.k===ck&&Date.now()-c.t<6e5)ko=c.v}catch(e){}
+    if(!ko){ko=await odsay(s,state.to,0);try{sessionStorage.setItem("gilbeot.rt",JSON.stringify({k:ck,t:Date.now(),v:ko}))}catch(e){}}
+    const pk=(ko.path||[]);
+    state.routes=pk.slice(0,5).map(p=>({loc:p,ko:p,start:s,single:true}));
     state.sel=0;state.rDone=[];
     if(!state.routes.length) state.err=lt("apiErr");
   }catch(e){
@@ -979,30 +982,33 @@ async function findRoute(){
 }
 
 // ---- steps from a route ----
+const LANE_KEY={1:"L1",2:"L2",3:"L3",4:"L4",5:"L5",6:"L6",9:"L9",101:"AREX",104:"GJ",109:"SB",21:"IC1",22:"IC2"};
 function liveSteps(R){
+  const N=x=>R.single?nm(x):esc(x);
+  const LN=ln=>R.single&&LANE_KEY[ln.subwayCode]?esc(tr(LINES[LANE_KEY[ln.subwayCode]].n)):N(ln.name);
   const steps=[];const sp=R.loc.subPath, kp=R.ko.subPath;
   for(let i=0;i<sp.length;i++){
     const a=sp[i], k=kp[i]||a, nx=sp[i+1], nk=kp[i+1];
     if(a.trafficType===3){
       if(!a.distance) continue;
       const to = nx? (nx.startName) : (state.to? null : "");
-      let text=lt("walkTo",{d:a.distance,m:Math.max(1,a.sectionTime),to: nx? `<b>${nx.trafficType===1?esc(nx.startName):esc(nx.startName)}</b>` : `<b>${esc(lt("walkDest"))}</b>`});
+      let text=lt("walkTo",{d:a.distance,m:Math.max(1,a.sectionTime),to: nx? `<b>${N(nx.startName)}</b>` : `<b>${esc(lt("walkDest"))}</b>`});
       if(nx&&nx.trafficType===1&&nx.startExitNo) text+=lt("enterExit",nx.startExitNo);
       steps.push({html:text,c:"var(--line)",sign:nk?{ko:nk.startName,tr:nx.startName}:null,kind:"walk"});
     } else if(a.trafficType===1){
       const ln=a.lane[0], code=ln.subwayCode, col=SUB_COLOR[code]||"#666";
-      let text=lt("subBoard",{st:`<b>${esc(a.startName)}</b>`,line:`<b>${esc(ln.name)}</b>`,way:`<b>${esc(a.way)}</b>`});
+      let text=lt("subBoard",{st:`<b>${N(a.startName)}</b>`,line:`<b>${LN(ln)}</b>`,way:`<b>${N(a.way)}</b>`});
       if(a.door&&a.door!=="null") text+=lt("door",esc(a.door));
-      steps.push({html:text,c:col,badge:subBadge(code),sign:{ko:`${k.lane[0].name} · ${k.way} 방면`,tr:`${ln.name} · ${a.way}`},live:{t:"sub",st:k.startName,code,way:k.way,key:"s"+i},kind:"train"});
-      steps.push({html:lt("subRide",{n:a.stationCount,m:a.sectionTime,st:`<b>${esc(a.endName)}</b>`}),c:col,badge:subBadge(code),sign:{ko:k.endName,tr:a.endName},kind:"train"});
+      steps.push({html:text,c:col,badge:subBadge(code),sign:{ko:`${k.lane[0].name} · ${k.way} 방면`,tr:R.single?(LANE_KEY[code]?tr(LINES[LANE_KEY[code]].n):""):`${ln.name} · ${a.way}`},live:{t:"sub",st:k.startName,code,way:k.way,key:"s"+i},kind:"train"});
+      steps.push({html:lt("subRide",{n:a.stationCount,m:a.sectionTime,st:`<b>${N(a.endName)}</b>`}),c:col,badge:subBadge(code),sign:{ko:k.endName,tr:R.single?"":a.endName},kind:"train"});
       if(a.endExitNo&&(!nx||nx.trafficType===3)) steps.push({html:lt("exitNo",esc(a.endExitNo)),exit:a.endExitNo,sign:{ko:`${a.endExitNo}번 출구`,tr:"Exit "+a.endExitNo},kind:"exit"});
     } else if(a.trafficType===2){
       const ln=a.lane[0], stops=(a.passStopList&&a.passStopList.stations)||[], kst=(k.passStopList&&k.passStopList.stations)||[];
       const next=stops[1]?stops[1].stationName:a.endName;
       const col=BUS_COLOR[ln.type]||"#3D5BAB";
-      steps.push({html:lt("busBoard",{st:esc(a.startName),ars:a.startArsID&&a.startArsID!=="-"?esc(a.startArsID):"",no:`<b>${esc(ln.busNo)}</b>`,next:esc(next)}),c:col,badge:busBadge(ln.busNo,ln.type),
-        sign:{ko:`${k.startName} → ${kst[1]?kst[1].stationName:k.endName}`,tr:`${a.startName} → ${next}`},live:a.startArsID&&a.startArsID!=="-"?{t:"bus",ars:a.startArsID,no:ln.busNo,key:"b"+i}:null,kind:"bus"});
-      steps.push({html:lt("busRideL",{n:a.stationCount,m:a.sectionTime,st:`<b>${esc(a.endName)}</b>`}),c:col,badge:busBadge(ln.busNo,ln.type),sign:{ko:k.endName,tr:a.endName},kind:"bus"});
+      steps.push({html:lt("busBoard",{st:N(a.startName),ars:a.startArsID&&a.startArsID!=="-"?esc(a.startArsID):"",no:`<b>${esc(ln.busNo)}</b>`,next:N(next)}),c:col,badge:busBadge(ln.busNo,ln.type),
+        sign:{ko:`${k.startName} → ${kst[1]?kst[1].stationName:k.endName}`,tr:R.single?romanize(`${a.startName} → ${next}`):`${a.startName} → ${next}`},live:a.startArsID&&a.startArsID!=="-"?{t:"bus",ars:a.startArsID,no:ln.busNo,key:"b"+i}:null,kind:"bus"});
+      steps.push({html:lt("busRideL",{n:a.stationCount,m:a.sectionTime,st:`<b>${N(a.endName)}</b>`}),c:col,badge:busBadge(ln.busNo,ln.type),sign:{ko:k.endName,tr:R.single?romanize(k.endName):a.endName},kind:"bus"});
     }
   }
   steps.push({html:lt("arriveL",`<b>${nm(state.to.ko)}</b>`),kind:"arrive",sign:{ko:state.to.ko,tr:""}});
