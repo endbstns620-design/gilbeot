@@ -1,0 +1,9 @@
+{
+  "name": "gilbeot",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Gilbeot - multilingual Korea transit guide with live data",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}
