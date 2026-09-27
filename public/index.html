@@ -1,0 +1,1193 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#13264A"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<title>Gilbeot Transit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans+KR:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --paper:#EEF2F6; --surface:#FFFFFF; --surface2:#F6F8FB; --ink:#0F1B2D; --muted:#566377; --line:#D6DDE7;
+  --navy:#13264A; --navy-ink:#FFFFFF; --exit:#FFD200; --exit-ink:#111111;
+  --accent:#0079B8; --accent-soft:#E0F1FA; --ok:#1E8E5A; --warn:#B35A00;
+  --ui:"Noto Sans",system-ui,-apple-system,"Segoe UI","Hiragino Sans","PingFang SC","Microsoft YaHei",sans-serif;
+  --ko:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",var(--ui);
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  color-scheme:dark; --paper:#0A111D; --surface:#121B2B; --surface2:#172236; --ink:#E7EDF6; --muted:#98A5B8; --line:#26324A;
+  --navy:#0B1830; --navy-ink:#F2F5FA; --accent:#46B4EC; --accent-soft:#12324A; --ok:#4CC38A; --warn:#F0A04B;}}
+:root[data-theme="dark"]{
+  color-scheme:dark; --paper:#0A111D; --surface:#121B2B; --surface2:#172236; --ink:#E7EDF6; --muted:#98A5B8; --line:#26324A;
+  --navy:#0B1830; --navy-ink:#F2F5FA; --accent:#46B4EC; --accent-soft:#12324A; --ok:#4CC38A; --warn:#F0A04B;}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.ko{font-family:var(--ko)}
+.app{max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--navy);color:var(--navy-ink);padding:10px 16px;display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:baseline;gap:8px;flex:1;min-width:0}
+.brand b{font-weight:800;font-size:18px;letter-spacing:.01em}
+.brand span{font-family:var(--ko);font-size:13px;opacity:.7}
+.langbtn{border:1px solid rgba(255,255,255,.35);background:transparent;color:var(--navy-ink);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600;display:flex;gap:6px;align-items:center}
+main{flex:1;padding:16px 16px 96px;display:flex;flex-direction:column;gap:16px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
+nav.tabs button{background:none;border:0;padding:8px 2px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted);font-weight:600;line-height:1.15;text-align:center}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button[aria-current="page"]{color:var(--accent)}
+h1,h2,h3{margin:0;text-wrap:balance;line-height:1.25}
+h1{font-size:22px;font-weight:800}
+h2{font-size:17px;font-weight:700}
+h3{font-size:15px;font-weight:700}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{border:0;background:transparent;border-radius:8px;padding:8px;font-weight:600;font-size:13px;line-height:1.3}
+.seg button[aria-pressed="true"]{background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.12);color:var(--accent)}
+.dests{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dest{border:1px solid var(--line);background:var(--surface2);border-radius:10px;padding:10px 12px;text-align:left;display:flex;flex-direction:column;gap:2px}
+.dest b{font-size:15px}
+.dest .ko{font-size:13px;color:var(--muted)}
+.dest[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;font-weight:600;color:var(--muted)}
+input[type=text],input[type=search],textarea{width:100%;border:1px solid var(--line);background:var(--surface2);border-radius:10px;padding:10px 12px;font-size:15px}
+textarea{font:inherit;color:inherit;min-height:64px;resize:vertical}
+.btn{border:0;border-radius:10px;padding:11px 14px;font-weight:700;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;font-size:14px}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.sm{padding:7px 11px;font-size:13px}
+.summary{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700;background:var(--surface2);border:1px solid var(--line)}
+.lbadge{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 7px;border-radius:999px;color:#fff;font-family:var(--mono);font-weight:600;font-size:12px;flex:none}
+.exitbadge{display:inline-flex;align-items:center;gap:4px;background:var(--exit);color:var(--exit-ink);border-radius:6px;padding:2px 8px;font-weight:800;font-family:var(--mono);font-size:13px}
+/* steps */
+.steps{display:flex;flex-direction:column}
+.step{display:grid;grid-template-columns:36px 1fr;gap:12px;position:relative;padding-bottom:18px}
+.step:last-child{padding-bottom:0}
+.step::before{content:"";position:absolute;left:17px;top:36px;bottom:0;width:2px;background:var(--stepc,var(--line))}
+.step:last-child::before{display:none}
+.snum{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-family:var(--mono);background:var(--surface);border:2px solid var(--stepc,var(--line));color:var(--ink);font-size:14px}
+.step.done .snum{background:var(--ok);border-color:var(--ok);color:#fff}
+.scard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.step.done .scard{opacity:.62}
+.stitle{font-weight:700;font-size:15px}
+.sign{display:flex;align-items:center;gap:10px;border-radius:8px;background:var(--surface2);border:1px solid var(--line);padding:8px 10px}
+.sign .ko{font-weight:700;font-size:16px}
+.sign .tr{font-size:12px;color:var(--muted)}
+.sacts{display:flex;gap:8px;flex-wrap:wrap}
+.linkbtn{background:none;border:0;color:var(--accent);font-weight:700;font-size:13px;padding:2px 0}
+/* station board */
+.board{border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+.board .band{height:8px}
+.board .bd{padding:10px 14px;display:flex;align-items:center;gap:12px}
+.board .nm > .ko{font-size:22px;font-weight:700;line-height:1.2}
+.board .nm .tr{font-size:14px;color:var(--muted)}
+/* line map */
+.linetabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.linetabs button{flex:none;border:2px solid var(--lc);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;display:flex;gap:6px;align-items:center}
+.linetabs button[aria-pressed="true"]{background:var(--lc);color:#fff}
+.stlist{display:flex;flex-direction:column}
+.st{display:grid;grid-template-columns:52px 22px 1fr;align-items:center;gap:10px;min-height:52px}
+.st .code{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:right}
+.st .dot{position:relative;height:100%;display:grid;place-items:center}
+.st .dot::before{content:"";position:absolute;top:0;bottom:0;width:6px;background:var(--lc)}
+.st:first-child .dot::before{top:50%}.st:last-child .dot::before{bottom:50%}
+.st .dot i{position:relative;width:16px;height:16px;border-radius:50%;background:var(--surface);border:4px solid var(--lc)}
+.st.xfer .dot i{width:20px;height:20px;border-width:3px;border-color:var(--ink);background:var(--surface)}
+.st .nm{display:flex;flex-direction:column;padding-block:6px}
+.st .nm .ko{font-weight:700;font-size:15px}
+.st .nm .tr{font-size:13px;color:var(--muted)}
+.st .xl{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
+.xl .lbadge{height:18px;min-width:18px;font-size:10px;padding:0 5px}
+/* korean card */
+.kcard{background:#FFFDF2;color:#111;border:2px solid #111;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px}
+.kcard .big{font-family:var(--ko);font-size:30px;font-weight:700;line-height:1.25;word-break:keep-all}
+.kcard .addr{font-family:var(--ko);font-size:19px;font-weight:600;word-break:keep-all}
+.kcard .say{font-family:var(--ko);font-size:18px;border-top:1px dashed #999;padding-top:10px}
+.kcard .tr{font-size:13px;color:#555}
+.phr{display:grid;gap:8px}
+.phr button{text-align:left;border:1px solid var(--line);background:var(--surface2);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.phr button .ko{font-weight:700;font-size:16px}
+.phr button span.tr{font-size:13px;color:var(--muted)}
+/* map */
+.mapbox{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--surface2)}
+.mapbox svg{display:block;width:100%;height:auto}
+.results{display:flex;flex-direction:column;gap:6px}
+.res{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface);text-align:left;width:100%}
+.res .ko{font-size:13px;color:var(--muted)}
+.list{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.buscolors{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bc{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface2)}
+.bc i{width:28px;height:18px;border-radius:4px;flex:none}
+.note{font-size:12px;color:var(--muted);border-left:3px solid var(--warn);padding-left:10px}
+.sheet{position:fixed;inset:0;z-index:50;background:rgba(5,10,20,.55);display:flex;align-items:flex-end;justify-content:center}
+.sheet .in{background:var(--surface);width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.langs{display:grid;gap:8px}
+.langs button{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:12px 14px;font-size:16px;font-weight:600}
+.langs button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;z-index:60}
+.preview{max-height:220px;border-radius:10px;object-fit:contain;background:#000;width:100%}
+details.guide summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.guide summary::after{content:"+";font-size:20px;color:var(--muted)}
+details.guide[open] summary::after{content:"–"}
+@media (prefers-reduced-motion:no-preference){.step,.panel{animation:rise .25s ease both}@keyframes rise{from{transform:translateY(4px)}to{transform:none}}}
+@media (max-width:380px){.dests{grid-template-columns:1fr}.buscolors{grid-template-columns:1fr}}
+</style>
+</head><body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><b>Gilbeot</b><span>길벗</span></div>
+    <button class="langbtn" id="langbtn" aria-label="Language"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span id="langLabel">English</span></button>
+  </header>
+  <div style="background:var(--navy);color:var(--navy-ink);padding:0 16px 12px;font-size:13px;opacity:.85" id="tagline"></div>
+  <main id="main"></main>
+  <nav class="tabs"><div class="in" id="nav"></div></nav>
+</div>
+<script>
+// ===== Languages =====
+const LANGS = [
+  {id:"en", name:"English"},
+  {id:"ja", name:"日本語"},
+  {id:"zh", name:"中文（简体）"},
+  {id:"vi", name:"Tiếng Việt"},
+  {id:"ru", name:"Русский"}
+];
+
+// ===== UI strings =====
+const T = {
+  tagline:{en:"Your guide from the airport to your stay",ja:"空港から宿まで、あなたの道案内",zh:"从机场到住处的出行向导",vi:"Hướng dẫn từ sân bay đến chỗ ở",ru:"Путь из аэропорта до вашего жилья"},
+  chooseLang:{en:"Choose your language",ja:"言語を選択",zh:"选择语言",vi:"Chọn ngôn ngữ",ru:"Выберите язык"},
+  autoDetected:{en:"Detected from your phone. You can change it anytime.",ja:"端末の設定から自動選択しました。いつでも変更できます。",zh:"已根据手机设置自动选择，可随时更改。",vi:"Đã tự chọn theo điện thoại. Bạn có thể đổi bất cứ lúc nào.",ru:"Выбрано по настройкам телефона. Можно изменить в любой момент."},
+  tabRoute:{en:"Route",ja:"ルート",zh:"路线",vi:"Lộ trình",ru:"Маршрут"},
+  tabMap:{en:"Map",ja:"地図",zh:"地图",vi:"Bản đồ",ru:"Карта"},
+  tabMetro:{en:"Subway",ja:"地下鉄",zh:"地铁",vi:"Tàu điện",ru:"Метро"},
+  tabBus:{en:"Bus",ja:"バス",zh:"公交",vi:"Xe buýt",ru:"Автобус"},
+  tabScan:{en:"Sign",ja:"標識",zh:"标识",vi:"Biển báo",ru:"Табличка"},
+  tabCard:{en:"Korean",ja:"韓国語",zh:"韩语卡",vi:"Tiếng Hàn",ru:"По-корейски"},
+  airportTitle:{en:"Airport → Your stay",ja:"空港 → 宿泊先",zh:"机场 → 住处",vi:"Sân bay → Chỗ ở",ru:"Аэропорт → Жильё"},
+  arrivedAt:{en:"I landed at",ja:"到着ターミナル",zh:"到达航站楼",vi:"Tôi đến nhà ga",ru:"Я прилетел в"},
+  goingTo:{en:"I'm staying near",ja:"宿泊エリア",zh:"住宿区域",vi:"Tôi ở gần",ru:"Я живу рядом с"},
+  way:{en:"How to travel",ja:"移動手段",zh:"出行方式",vi:"Cách đi",ru:"Как ехать"},
+  bySubway:{en:"Train (AREX)",ja:"鉄道（AREX）",zh:"机场铁路",vi:"Tàu (AREX)",ru:"Поезд (AREX)"},
+  byBus:{en:"Airport bus",ja:"空港バス",zh:"机场大巴",vi:"Xe buýt sân bay",ru:"Автобус-лимузин"},
+  noBus:{en:"No simple airport bus for this area. Use the train route.",ja:"このエリアへの分かりやすい空港バスはありません。鉄道ルートをご利用ください。",zh:"该区域没有便捷的机场大巴，请使用铁路路线。",vi:"Khu vực này không có xe buýt sân bay đơn giản. Hãy đi tàu.",ru:"Удобного автобуса в этот район нет. Используйте поезд."},
+  steps:{en:"steps",ja:"ステップ",zh:"步",vi:"bước",ru:"шагов"},
+  about:{en:"about",ja:"約",zh:"约",vi:"khoảng",ru:"около"},
+  min:{en:"min",ja:"分",zh:"分钟",vi:"phút",ru:"мин"},
+  transfers:{en:"transfer",ja:"乗換",zh:"换乘",vi:"chuyển tuyến",ru:"пересадка"},
+  markDone:{en:"Done",ja:"完了",zh:"完成",vi:"Xong",ru:"Готово"},
+  undo:{en:"Undo",ja:"戻す",zh:"撤销",vi:"Hoàn tác",ru:"Отменить"},
+  showKo:{en:"Show in Korean",ja:"韓国語で見せる",zh:"用韩语出示",vi:"Hiện tiếng Hàn",ru:"Показать по-корейски"},
+  lookFor:{en:"Look for this sign",ja:"この表示を探してください",zh:"请寻找这个标识",vi:"Tìm biển này",ru:"Ищите эту надпись"},
+  progress:{en:"Progress",ja:"進行状況",zh:"进度",vi:"Tiến độ",ru:"Прогресс"},
+  reset:{en:"Start over",ja:"最初から",zh:"重新开始",vi:"Làm lại",ru:"Сначала"},
+  firstTime:{en:"First time on Korean transit?",ja:"韓国の交通は初めてですか？",zh:"第一次在韩国乘坐公共交通？",vi:"Lần đầu đi giao thông công cộng ở Hàn?",ru:"Впервые в транспорте Кореи?"},
+  tmoneyTitle:{en:"How to use a T-money card",ja:"T-moneyカードの使い方",zh:"T-money交通卡使用方法",vi:"Cách dùng thẻ T-money",ru:"Как пользоваться картой T-money"},
+  mapTitle:{en:"Find a place",ja:"場所を探す",zh:"查找地点",vi:"Tìm địa điểm",ru:"Найти место"},
+  searchPh:{en:"Search in your language or Korean",ja:"日本語・韓国語で検索",zh:"用中文或韩语搜索",vi:"Tìm bằng tiếng Việt hoặc tiếng Hàn",ru:"Поиск на русском или корейском"},
+  myLoc:{en:"Use my location",ja:"現在地を使う",zh:"使用当前位置",vi:"Dùng vị trí của tôi",ru:"Моё местоположение"},
+  locOff:{en:"Location is not available here. Open the map app below instead.",ja:"ここでは位置情報を利用できません。下の地図アプリを開いてください。",zh:"此处无法获取位置，请打开下方的地图应用。",vi:"Không lấy được vị trí ở đây. Hãy mở ứng dụng bản đồ bên dưới.",ru:"Геолокация здесь недоступна. Откройте карту ниже."},
+  youHere:{en:"You",ja:"現在地",zh:"我的位置",vi:"Bạn",ru:"Вы"},
+  nearest:{en:"Closest place in the app",ja:"最寄りの登録地点",zh:"最近的地点",vi:"Địa điểm gần nhất",ru:"Ближайшее место"},
+  openNaver:{en:"Open in Naver Map",ja:"NAVER地図で開く",zh:"在Naver地图中打开",vi:"Mở trên Naver Map",ru:"Открыть в Naver Map"},
+  openKakao:{en:"Kakao Map directions",ja:"カカオマップで経路",zh:"Kakao地图导航",vi:"Chỉ đường Kakao Map",ru:"Маршрут в Kakao Map"},
+  openGoogle:{en:"Google Maps (transit)",ja:"Googleマップ（公共交通）",zh:"谷歌地图（公交）",vi:"Google Maps (công cộng)",ru:"Google Карты (транспорт)"},
+  mapTip:{en:"In Korea, Naver Map and Kakao Map give the most accurate walking and transit directions. Both have English menus.",ja:"韓国ではNAVER地図とカカオマップの徒歩・交通案内が最も正確です。",zh:"在韩国，Naver地图和Kakao地图的步行与公交导航最准确。",vi:"Ở Hàn Quốc, Naver Map và Kakao Map chỉ đường chính xác nhất.",ru:"В Корее точнее всего маршруты в Naver Map и Kakao Map."},
+  setDest:{en:"Make Korean card",ja:"韓国語カードを作る",zh:"生成韩语卡",vi:"Tạo thẻ tiếng Hàn",ru:"Сделать карточку"},
+  metroTitle:{en:"Subway lines",ja:"地下鉄路線",zh:"地铁线路",vi:"Tuyến tàu điện",ru:"Линии метро"},
+  metroNote:{en:"Showing the lines used by the airport routes in this app. The round black ring marks a transfer station.",ja:"このアプリの空港ルートで使う路線を表示しています。黒い丸は乗換駅です。",zh:"显示本应用机场路线使用的线路。黑色圆圈表示换乘站。",vi:"Hiển thị các tuyến dùng trong lộ trình sân bay. Vòng tròn đen là ga chuyển tuyến.",ru:"Показаны линии, используемые в маршрутах из аэропорта. Чёрное кольцо — пересадочная станция."},
+  xferTo:{en:"Transfer",ja:"乗換",zh:"换乘",vi:"Chuyển",ru:"Пересадка"},
+  busTitle:{en:"Bus guide",ja:"バス案内",zh:"公交指南",vi:"Hướng dẫn xe buýt",ru:"Автобусы"},
+  busNo:{en:"Bus number",ja:"バス番号",zh:"车次",vi:"Số xe",ru:"Номер"},
+  boardAt:{en:"Get on at",ja:"乗車",zh:"上车站",vi:"Lên xe tại",ru:"Посадка"},
+  direction:{en:"Direction",ja:"方面",zh:"方向",vi:"Hướng",ru:"Направление"},
+  getOffAt:{en:"Get off at",ja:"降車",zh:"下车站",vi:"Xuống xe tại",ru:"Выход"},
+  fare:{en:"Fare",ja:"運賃",zh:"票价",vi:"Giá vé",ru:"Цена"},
+  busColors:{en:"Seoul bus colors",ja:"ソウルのバスの色",zh:"首尔公交颜色",vi:"Màu xe buýt Seoul",ru:"Цвета автобусов Сеула"},
+  busRules:{en:"Riding a city bus",ja:"市内バスの乗り方",zh:"乘坐市内公交",vi:"Cách đi xe buýt nội thành",ru:"Как ездить на городском автобусе"},
+  scanTitle:{en:"Check a sign",ja:"標識を確認",zh:"核对标识",vi:"Kiểm tra biển báo",ru:"Проверить табличку"},
+  scanDesc:{en:"Take a photo of a station sign. The app reads the Korean and shows the translation.",ja:"駅の標識を撮影すると、韓国語を読み取って翻訳を表示します。",zh:"拍摄车站标识，应用会识别韩文并显示翻译。",vi:"Chụp biển tên ga, ứng dụng đọc tiếng Hàn và hiện bản dịch.",ru:"Сфотографируйте табличку станции — приложение распознает корейский текст и покажет перевод."},
+  takePhoto:{en:"Take or choose a photo",ja:"写真を撮る・選ぶ",zh:"拍照或选择照片",vi:"Chụp hoặc chọn ảnh",ru:"Снять или выбрать фото"},
+  reading:{en:"Reading the Korean text…",ja:"韓国語を読み取り中…",zh:"正在识别韩文…",vi:"Đang đọc chữ Hàn…",ru:"Распознаём корейский текст…"},
+  found:{en:"Matches on this sign",ja:"標識から見つかった駅",zh:"标识中识别到",vi:"Tìm thấy trên biển",ru:"Найдено на табличке"},
+  noMatch:{en:"No station name found. Type what you see below.",ja:"駅名が見つかりません。下に入力してください。",zh:"未识别到站名，请在下方输入。",vi:"Không tìm thấy tên ga. Hãy gõ chữ bạn thấy bên dưới.",ru:"Название не найдено. Введите текст ниже."},
+  ocrOff:{en:"Text reading is not available here. Type or pick the name below.",ja:"ここでは文字認識を利用できません。下で入力・選択してください。",zh:"此处无法识别文字，请在下方输入或选择。",vi:"Không đọc được chữ ở đây. Hãy gõ hoặc chọn tên bên dưới.",ru:"Распознавание здесь недоступно. Введите или выберите название ниже."},
+  typeSign:{en:"Type the sign (Korean or your language)",ja:"表示を入力（韓国語・日本語）",zh:"输入标识（韩语或中文）",vi:"Gõ chữ trên biển (tiếng Hàn hoặc tiếng Việt)",ru:"Введите надпись (по-корейски или по-русски)"},
+  onRoute:{en:"On your route",ja:"あなたのルート上",zh:"在您的路线上",vi:"Có trên lộ trình",ru:"На вашем маршруте"},
+  notRoute:{en:"Not on your current route",ja:"現在のルート外です",zh:"不在当前路线上",vi:"Không thuộc lộ trình",ru:"Не на вашем маршруте"},
+  cardTitle:{en:"Show this to a driver or passer-by",ja:"運転手や周りの人に見せてください",zh:"出示给司机或路人",vi:"Đưa cho tài xế hoặc người xung quanh",ru:"Покажите водителю или прохожему"},
+  hotelName:{en:"Hotel / place name (Korean if you have it)",ja:"ホテル・場所名（韓国語があれば）",zh:"酒店/地点名称（最好用韩文）",vi:"Tên khách sạn / địa điểm (tiếng Hàn nếu có)",ru:"Название отеля / места (по-корейски, если есть)"},
+  hotelAddr:{en:"Address (paste from your booking)",ja:"住所（予約確認から貼り付け）",zh:"地址（从预订确认中粘贴）",vi:"Địa chỉ (dán từ xác nhận đặt phòng)",ru:"Адрес (вставьте из бронирования)"},
+  phrases:{en:"Useful phrases",ja:"便利なフレーズ",zh:"常用句子",vi:"Câu hữu ích",ru:"Полезные фразы"},
+  tapPhrase:{en:"Tap a phrase to put it on the card.",ja:"タップするとカードに表示されます。",zh:"点击句子即可显示在卡片上。",vi:"Chạm vào câu để đưa lên thẻ.",ru:"Нажмите фразу, чтобы вывести её на карточку."},
+  copy:{en:"Copy Korean",ja:"韓国語をコピー",zh:"复制韩文",vi:"Sao chép tiếng Hàn",ru:"Копировать"},
+  copied:{en:"Copied",ja:"コピーしました",zh:"已复制",vi:"Đã sao chép",ru:"Скопировано"},
+  bigger:{en:"Full screen",ja:"全画面",zh:"全屏",vi:"Toàn màn hình",ru:"Во весь экран"},
+  close:{en:"Close",ja:"閉じる",zh:"关闭",vi:"Đóng",ru:"Закрыть"},
+  sample:{en:"Sample route data. Check times and fares on the day you travel.",ja:"サンプルデータです。当日の時刻・運賃をご確認ください。",zh:"示例数据，请在出行当天确认时间和票价。",vi:"Dữ liệu mẫu. Hãy kiểm tra giờ và giá vé vào ngày đi.",ru:"Пример данных. Проверяйте расписание и цены в день поездки."},
+  stops:{en:"stops",ja:"駅",zh:"站",vi:"ga",ru:"ост."},
+  nextSt:{en:"Next station",ja:"次の駅",zh:"下一站",vi:"Ga kế tiếp",ru:"Следующая"}
+};
+
+// ===== Line colors (official Seoul Metro palette) =====
+const LINES = {
+  AREX:{c:"#0090D2",n:{en:"Airport Railroad",ja:"空港鉄道",zh:"机场铁路",vi:"Đường sắt sân bay",ru:"Аэроэкспресс AREX"},ko:"공항철도",s:"A"},
+  L1:{c:"#0052A4",n:{en:"Line 1",ja:"1号線",zh:"1号线",vi:"Tuyến 1",ru:"Линия 1"},ko:"1호선",s:"1"},
+  L2:{c:"#00A84D",n:{en:"Line 2",ja:"2号線",zh:"2号线",vi:"Tuyến 2",ru:"Линия 2"},ko:"2호선",s:"2"},
+  L3:{c:"#EF7C1C",n:{en:"Line 3",ja:"3号線",zh:"3号线",vi:"Tuyến 3",ru:"Линия 3"},ko:"3호선",s:"3"},
+  L4:{c:"#00A5DE",n:{en:"Line 4",ja:"4号線",zh:"4号线",vi:"Tuyến 4",ru:"Линия 4"},ko:"4호선",s:"4"},
+  L5:{c:"#996CAC",n:{en:"Line 5",ja:"5号線",zh:"5号线",vi:"Tuyến 5",ru:"Линия 5"},ko:"5호선",s:"5"},
+  L6:{c:"#CD7C2F",n:{en:"Line 6",ja:"6号線",zh:"6号线",vi:"Tuyến 6",ru:"Линия 6"},ko:"6호선",s:"6"},
+  L9:{c:"#BDB092",n:{en:"Line 9",ja:"9号線",zh:"9号线",vi:"Tuyến 9",ru:"Линия 9"},ko:"9호선",s:"9"},
+  GJ:{c:"#77C4A3",n:{en:"Gyeongui–Jungang",ja:"京義・中央線",zh:"京义中央线",vi:"Gyeongui–Jungang",ru:"Кёнъи–Чунъан"},ko:"경의중앙선",s:"GJ"},
+  SB:{c:"#D4003B",n:{en:"Shinbundang",ja:"新盆唐線",zh:"新盆唐线",vi:"Shinbundang",ru:"Синбундан"},ko:"신분당선",s:"S"},
+  IC1:{c:"#7CA8D5",n:{en:"Incheon Line 1",ja:"仁川1号線",zh:"仁川1号线",vi:"Incheon tuyến 1",ru:"Инчхон, линия 1"},ko:"인천1호선",s:"I1"},
+  IC2:{c:"#ED8B00",n:{en:"Incheon Line 2",ja:"仁川2号線",zh:"仁川2号线",vi:"Incheon tuyến 2",ru:"Инчхон, линия 2"},ko:"인천2호선",s:"I2"}
+};
+
+// ===== Stations: ko, translations, transfer lines =====
+const ST = {
+  seoul:{ko:"서울역",en:"Seoul Station",ja:"ソウル駅",zh:"首尔站",vi:"Ga Seoul",ru:"Сеул (вокзал)",x:["AREX","L1","L4","GJ"]},
+  gongdeok:{ko:"공덕",en:"Gongdeok",ja:"孔徳（コンドク）",zh:"孔德",vi:"Gongdeok",ru:"Конток",x:["AREX","L5","L6","GJ"]},
+  hongik:{ko:"홍대입구",en:"Hongik Univ.",ja:"弘大入口（ホンデイック）",zh:"弘大入口",vi:"ĐH Hongik (Hongdae)",ru:"Университет Хоник (Хондэ)",x:["AREX","L2","GJ"]},
+  dmc:{ko:"디지털미디어시티",en:"Digital Media City",ja:"デジタルメディアシティ",zh:"数码媒体城",vi:"Digital Media City",ru:"Диджитал Медиа Сити",x:["AREX","L6","GJ"]},
+  magongnaru:{ko:"마곡나루",en:"Magongnaru",ja:"麻谷ナル（マゴンナル）",zh:"麻谷渡口",vi:"Magongnaru",ru:"Магоннару",x:["AREX","L9"]},
+  gimpo:{ko:"김포공항",en:"Gimpo Int'l Airport",ja:"金浦空港",zh:"金浦机场",vi:"Sân bay Gimpo",ru:"Аэропорт Кимпхо",x:["AREX","L5","L9"]},
+  gyeyang:{ko:"계양",en:"Gyeyang",ja:"桂陽（ケヤン）",zh:"桂阳",vi:"Gyeyang",ru:"Кёян",x:["AREX","IC1"]},
+  geomam:{ko:"검암",en:"Geomam",ja:"黔岩（コマム）",zh:"黔岩",vi:"Geomam",ru:"Комам",x:["AREX","IC2"]},
+  cheongna:{ko:"청라국제도시",en:"Cheongna Int'l City",ja:"青羅国際都市",zh:"青罗国际城",vi:"Thành phố quốc tế Cheongna",ru:"Чхонна",x:["AREX"]},
+  yeongjong:{ko:"영종",en:"Yeongjong",ja:"永宗（ヨンジョン）",zh:"永宗",vi:"Yeongjong",ru:"Ёнджон",x:["AREX"]},
+  unseo:{ko:"운서",en:"Unseo",ja:"雲西（ウンソ）",zh:"云西",vi:"Unseo",ru:"Унсо",x:["AREX"]},
+  cargo:{ko:"공항화물청사",en:"Airport Cargo Terminal",ja:"空港貨物庁舎",zh:"机场货运站",vi:"Nhà ga hàng hóa sân bay",ru:"Грузовой терминал",x:["AREX"]},
+  t1:{ko:"인천공항1터미널",en:"Incheon Airport T1",ja:"仁川空港第1ターミナル",zh:"仁川机场第1航站楼",vi:"Sân bay Incheon T1",ru:"Аэропорт Инчхон, терминал 1",x:["AREX"]},
+  t2:{ko:"인천공항2터미널",en:"Incheon Airport T2",ja:"仁川空港第2ターミナル",zh:"仁川机场第2航站楼",vi:"Sân bay Incheon T2",ru:"Аэропорт Инчхон, терминал 2",x:["AREX"]},
+  sinchon:{ko:"신촌",en:"Sinchon",ja:"新村（シンチョン）",zh:"新村",vi:"Sinchon",ru:"Синчхон",x:["L2"]},
+  hapjeong:{ko:"합정",en:"Hapjeong",ja:"合井（ハプチョン）",zh:"合井",vi:"Hapjeong",ru:"Хапчон",x:["L2","L6"]},
+  dangsan:{ko:"당산",en:"Dangsan",ja:"堂山（タンサン）",zh:"堂山",vi:"Dangsan",ru:"Тансан",x:["L2","L9"]},
+  ydpgu:{ko:"영등포구청",en:"Yeongdeungpo-gu Office",ja:"永登浦区庁",zh:"永登浦区厅",vi:"UBND quận Yeongdeungpo",ru:"Ёндынпхо-гу офис",x:["L2","L5"]},
+  mullae:{ko:"문래",en:"Mullae",ja:"文来（ムルレ）",zh:"文来",vi:"Mullae",ru:"Муллэ",x:["L2"]},
+  sindorim:{ko:"신도림",en:"Sindorim",ja:"新道林（シンドリム）",zh:"新道林",vi:"Sindorim",ru:"Синдорим",x:["L2","L1"]},
+  daerim:{ko:"대림",en:"Daerim",ja:"大林（テリム）",zh:"大林",vi:"Daerim",ru:"Тэрим",x:["L2"]},
+  guro:{ko:"구로디지털단지",en:"Guro Digital Complex",ja:"九老デジタル団地",zh:"九老数码园区",vi:"Khu kỹ thuật số Guro",ru:"Куро Диджитал",x:["L2"]},
+  sindaebang:{ko:"신대방",en:"Sindaebang",ja:"新大方（シンデバン）",zh:"新大方",vi:"Sindaebang",ru:"Синдэбан",x:["L2"]},
+  sillim:{ko:"신림",en:"Sillim",ja:"新林（シルリム）",zh:"新林",vi:"Sillim",ru:"Силлим",x:["L2"]},
+  bongcheon:{ko:"봉천",en:"Bongcheon",ja:"奉天（ポンチョン）",zh:"奉天",vi:"Bongcheon",ru:"Понгчхон",x:["L2"]},
+  snu:{ko:"서울대입구",en:"Seoul Nat'l Univ.",ja:"ソウル大入口",zh:"首尔大学入口",vi:"ĐH Quốc gia Seoul",ru:"Сеульский нац. университет",x:["L2"]},
+  nakseongdae:{ko:"낙성대",en:"Nakseongdae",ja:"落星垈（ナクソンデ）",zh:"落星垈",vi:"Nakseongdae",ru:"Наксондэ",x:["L2"]},
+  sadang:{ko:"사당",en:"Sadang",ja:"舎堂（サダン）",zh:"舍堂",vi:"Sadang",ru:"Садан",x:["L2","L4"]},
+  bangbae:{ko:"방배",en:"Bangbae",ja:"方背（パンベ）",zh:"方背",vi:"Bangbae",ru:"Панбэ",x:["L2"]},
+  seocho:{ko:"서초",en:"Seocho",ja:"瑞草（ソチョ）",zh:"瑞草",vi:"Seocho",ru:"Сочхо",x:["L2"]},
+  gyodae:{ko:"교대",en:"Seoul Nat'l Univ. of Education",ja:"教大（キョデ）",zh:"教大",vi:"ĐH Sư phạm Seoul (Gyodae)",ru:"Кёдэ",x:["L2","L3"]},
+  gangnam:{ko:"강남",en:"Gangnam",ja:"江南（カンナム）",zh:"江南",vi:"Gangnam",ru:"Каннам",x:["L2","SB"]},
+  sookmyung:{ko:"숙대입구",en:"Sookmyung Women's Univ.",ja:"淑大入口",zh:"淑大入口",vi:"ĐH Nữ Sookmyung",ru:"Университет Сукмён",x:["L4"]},
+  hoehyeon:{ko:"회현",en:"Hoehyeon (Namdaemun Market)",ja:"会賢（南大門市場）",zh:"会贤（南大门市场）",vi:"Hoehyeon (Chợ Namdaemun)",ru:"Хвехён (рынок Намдэмун)",x:["L4"]},
+  myeongdong:{ko:"명동",en:"Myeongdong",ja:"明洞（ミョンドン）",zh:"明洞",vi:"Myeongdong",ru:"Мёндон",x:["L4"]},
+  chungmuro:{ko:"충무로",en:"Chungmuro",ja:"忠武路（チュンムロ）",zh:"忠武路",vi:"Chungmuro",ru:"Чхунмуро",x:["L4","L3"]},
+  ddp:{ko:"동대문역사문화공원",en:"Dongdaemun History & Culture Park",ja:"東大門歴史文化公園",zh:"东大门历史文化公园",vi:"Công viên Lịch sử Văn hóa Dongdaemun",ru:"Парк истории и культуры Тондэмун",x:["L4","L2","L5"]}
+};
+
+// Line station orders (station codes shown on real signs)
+const LINE_ORDER = {
+  AREX:[["t2","A14"],["t1","A13"],["cargo","A12"],["unseo","A11"],["yeongjong","A10"],["cheongna","A09"],["geomam","A08"],["gyeyang","A07"],["gimpo","A06"],["magongnaru","A05"],["dmc","A04"],["hongik","A03"],["gongdeok","A02"],["seoul","A01"]],
+  L2:[["sinchon","240"],["hongik","239"],["hapjeong","238"],["dangsan","237"],["ydpgu","236"],["mullae","235"],["sindorim","234"],["daerim","233"],["guro","232"],["sindaebang","231"],["sillim","230"],["bongcheon","229"],["snu","228"],["nakseongdae","227"],["sadang","226"],["bangbae","225"],["seocho","224"],["gyodae","223"],["gangnam","222"],["ddp","205"]],
+  L4:[["sookmyung","427"],["seoul","426"],["hoehyeon","425"],["myeongdong","424"],["chungmuro","423"],["ddp","422"]]
+};
+// L2 is a loop; DDP shown separately at the end with a gap marker
+const LINE_GAP = {L2:"ddp"};
+
+// ===== Places (search + map + Korean card) =====
+const PLACES = [
+  {id:"hongdae",ko:"홍대입구역 9번 출구",area:"홍대",lat:37.5572,lng:126.9245,addr:"",en:"Hongdae (Hongik Univ. Stn)",ja:"弘大（ホンデ）",zh:"弘大",vi:"Hongdae",ru:"Хондэ",route:true},
+  {id:"myeongdong",ko:"명동역 6번 출구",area:"명동",lat:37.5609,lng:126.9863,addr:"",en:"Myeongdong",ja:"明洞（ミョンドン）",zh:"明洞",vi:"Myeongdong",ru:"Мёндон",route:true},
+  {id:"seoulstn",ko:"서울역",area:"서울역",lat:37.5547,lng:126.9707,addr:"서울 용산구 한강대로 405 (서울역)",en:"Seoul Station",ja:"ソウル駅",zh:"首尔站",vi:"Ga Seoul",ru:"Вокзал Сеул",route:true},
+  {id:"gangnam",ko:"강남역 11번 출구",area:"강남",lat:37.4979,lng:127.0276,addr:"",en:"Gangnam",ja:"江南（カンナム）",zh:"江南",vi:"Gangnam",ru:"Каннам",route:true},
+  {id:"gbg",ko:"경복궁",lat:37.5796,lng:126.9770,addr:"서울 종로구 사직로 161",en:"Gyeongbokgung Palace",ja:"景福宮",zh:"景福宫",vi:"Cung Gyeongbokgung",ru:"Дворец Кёнбоккун"},
+  {id:"tower",ko:"N서울타워",lat:37.5512,lng:126.9882,addr:"서울 용산구 남산공원길 105",en:"N Seoul Tower",ja:"Nソウルタワー",zh:"N首尔塔",vi:"Tháp N Seoul",ru:"Башня N Сеул"},
+  {id:"ddpplace",ko:"동대문디자인플라자",lat:37.5665,lng:127.0092,addr:"서울 중구 을지로 281",en:"Dongdaemun Design Plaza (DDP)",ja:"東大門デザインプラザ",zh:"东大门设计广场",vi:"Dongdaemun Design Plaza",ru:"Тондэмун Дизайн Плаза"},
+  {id:"insadong",ko:"인사동",lat:37.5740,lng:126.9850,addr:"서울 종로구 인사동길",en:"Insadong",ja:"仁寺洞（インサドン）",zh:"仁寺洞",vi:"Insadong",ru:"Инсадон"},
+  {id:"bukchon",ko:"북촌한옥마을",lat:37.5826,lng:126.9830,addr:"",en:"Bukchon Hanok Village",ja:"北村韓屋村",zh:"北村韩屋村",vi:"Làng Hanok Bukchon",ru:"Деревня Пукчхон"},
+  {id:"lotte",ko:"롯데월드타워",lat:37.5125,lng:127.1025,addr:"서울 송파구 올림픽로 300",en:"Lotte World Tower",ja:"ロッテワールドタワー",zh:"乐天世界塔",vi:"Lotte World Tower",ru:"Лотте Ворлд Тауэр"},
+  {id:"itaewon",ko:"이태원역",lat:37.5345,lng:126.9946,addr:"",en:"Itaewon",ja:"梨泰院（イテウォン）",zh:"梨泰院",vi:"Itaewon",ru:"Итхэвон"},
+  {id:"icn1",ko:"인천국제공항 제1여객터미널",lat:37.4491,lng:126.4506,addr:"인천 중구 공항로 272",en:"Incheon Airport Terminal 1",ja:"仁川空港 第1ターミナル",zh:"仁川机场 第1航站楼",vi:"Sân bay Incheon Nhà ga 1",ru:"Аэропорт Инчхон, терминал 1"},
+  {id:"icn2",ko:"인천국제공항 제2여객터미널",lat:37.4686,lng:126.4336,addr:"인천 중구 제2터미널대로 446",en:"Incheon Airport Terminal 2",ja:"仁川空港 第2ターミナル",zh:"仁川机场 第2航站楼",vi:"Sân bay Incheon Nhà ga 2",ru:"Аэропорт Инчхон, терминал 2"}
+];
+
+// ===== Phrases for the Korean card =====
+const PHRASES = [
+  {ko:"이 주소로 가 주세요.",en:"Please take me to this address.",ja:"この住所まで行ってください。",zh:"请带我去这个地址。",vi:"Làm ơn chở tôi đến địa chỉ này.",ru:"Отвезите меня по этому адресу, пожалуйста."},
+  {ko:"이곳에 어떻게 가나요?",en:"How do I get here?",ja:"ここへはどう行けばいいですか？",zh:"请问这里怎么走？",vi:"Làm sao để đến đây?",ru:"Как сюда добраться?"},
+  {ko:"이 정류장에서 내리면 알려 주세요.",en:"Please tell me when we reach this stop.",ja:"この停留所に着いたら教えてください。",zh:"到这一站时请告诉我。",vi:"Đến trạm này xin báo cho tôi.",ru:"Скажите, пожалуйста, когда будет эта остановка."},
+  {ko:"이 버스가 여기로 가나요?",en:"Does this bus go here?",ja:"このバスはここへ行きますか？",zh:"这辆公交车去这里吗？",vi:"Xe buýt này có đi đến đây không?",ru:"Этот автобус идёт сюда?"},
+  {ko:"교통카드는 어디서 충전하나요?",en:"Where can I top up my transit card?",ja:"交通カードはどこでチャージできますか？",zh:"交通卡在哪里充值？",vi:"Nạp thẻ giao thông ở đâu?",ru:"Где пополнить транспортную карту?"},
+  {ko:"카드로 결제할게요.",en:"I'll pay by card.",ja:"カードで払います。",zh:"我用卡支付。",vi:"Tôi trả bằng thẻ.",ru:"Я заплачу картой."}
+];
+
+// ===== T-money guide =====
+const TMONEY = [
+  {en:"Buy a T-money card at a convenience store (CU, GS25, 7-Eleven) in the arrivals hall. The card costs about ₩3,000–4,000.",ja:"到着ロビーのコンビニ（CU・GS25・セブンイレブン）でT-moneyカードを購入します。カード代は約3,000〜4,000ウォン。",zh:"在到达大厅的便利店（CU、GS25、7-Eleven）购买T-money卡，卡费约3,000–4,000韩元。",vi:"Mua thẻ T-money ở cửa hàng tiện lợi (CU, GS25, 7-Eleven) tại sảnh đến. Giá thẻ khoảng 3.000–4.000₩.",ru:"Купите карту T-money в магазине у дома (CU, GS25, 7-Eleven) в зоне прилёта. Сама карта стоит около ₩3 000–4 000.",ko:"티머니 카드 주세요."},
+  {en:"Top it up with cash. ₩20,000 covers the airport train plus a few days of rides. Most top-ups accept cash only.",ja:"現金でチャージします。20,000ウォンで空港鉄道と数日分の移動に足ります。チャージは基本的に現金のみです。",zh:"用现金充值。2万韩元足够机场铁路和几天的出行。充值一般只收现金。",vi:"Nạp tiền bằng tiền mặt. 20.000₩ đủ cho tàu sân bay và vài ngày đi lại. Hầu hết chỉ nhận tiền mặt.",ru:"Пополните наличными. ₩20 000 хватит на поезд из аэропорта и несколько дней поездок. Обычно принимают только наличные.",ko:"2만 원 충전해 주세요."},
+  {en:"Subway: tap the card on the gate reader when you enter, and tap again when you leave.",ja:"地下鉄：改札に入るときと出るときの両方でカードをタッチします。",zh:"地铁：进站和出站时都要在闸机上刷卡。",vi:"Tàu điện: chạm thẻ vào cổng khi vào và khi ra.",ru:"Метро: приложите карту на входе и ещё раз на выходе.",ko:"타는 곳 / 나가는 곳"},
+  {en:"Bus: board at the front door and tap. Tap again at the back door when you get off, or you lose the transfer discount.",ja:"バス：前のドアから乗ってタッチ。降りるときも後ろのドアでタッチしないと乗換割引が受けられません。",zh:"公交：从前门上车刷卡。下车时在后门再刷一次，否则没有换乘优惠。",vi:"Xe buýt: lên cửa trước và chạm thẻ. Khi xuống cũng chạm thẻ ở cửa sau, nếu không sẽ mất ưu đãi chuyển tuyến.",ru:"Автобус: входите в переднюю дверь и прикладывайте карту. При выходе через заднюю дверь приложите снова, иначе не будет скидки на пересадку.",ko:"하차 태그"},
+  {en:"Transfers between subway and bus within 30 minutes are discounted automatically.",ja:"30分以内の地下鉄・バスの乗換は自動で割引されます。",zh:"30分钟内地铁与公交换乘自动享受优惠。",vi:"Chuyển giữa tàu và xe buýt trong 30 phút được giảm giá tự động.",ru:"Пересадка между метро и автобусом в течение 30 минут — со скидкой автоматически.",ko:"환승"},
+  {en:"Not enough balance at the exit gate? Use the yellow 'Fare Adjustment' machine next to the gates.",ja:"出口で残高不足のときは、改札横の「精算機」を使います。",zh:"出站时余额不足，请使用闸机旁的“补票机”。",vi:"Thiếu tiền khi ra cổng? Dùng máy 'Điều chỉnh giá vé' cạnh cổng.",ru:"Не хватает денег на выходе? Используйте автомат доплаты рядом с турникетами.",ko:"교통카드 정산기"}
+];
+
+const BUS_COLORS = [
+  {c:"#3D5BAB",ko:"간선버스",en:"Blue: long routes across Seoul",ja:"青：ソウルを横断する幹線",zh:"蓝色：跨区干线",vi:"Xanh dương: tuyến dài xuyên Seoul",ru:"Синий: длинные маршруты через Сеул"},
+  {c:"#56B948",ko:"지선버스",en:"Green: short local routes to subway stations",ja:"緑：駅へ向かう支線",zh:"绿色：连接地铁站的支线",vi:"Xanh lá: tuyến ngắn nối ga tàu",ru:"Зелёный: короткие маршруты к метро"},
+  {c:"#E60012",ko:"광역버스",en:"Red: express buses to nearby cities",ja:"赤：近郊都市への急行",zh:"红色：往返周边城市的快线",vi:"Đỏ: xe nhanh đến thành phố lân cận",ru:"Красный: экспрессы в пригороды"},
+  {c:"#F2B70A",ko:"순환버스",en:"Yellow: loops in the city center",ja:"黄：都心の循環線",zh:"黄色：市中心环线",vi:"Vàng: tuyến vòng trung tâm",ru:"Жёлтый: кольцевые в центре"}
+];
+
+const BUS_RULES = [
+  {en:"Check the stop sign: it lists every bus number that stops there and the next stops in order.",ja:"停留所の案内板で、停まるバス番号と次の停留所を確認します。",zh:"查看站牌：上面有停靠的车次和后续站点顺序。",vi:"Xem biển trạm: có số xe dừng ở đó và các trạm tiếp theo.",ru:"На табличке остановки — номера автобусов и порядок следующих остановок."},
+  {en:"Buses do not always stop. Raise your hand when your bus comes.",ja:"バスは必ず停まるとは限りません。来たら手を挙げましょう。",zh:"公交车不一定每站都停，车来时请招手。",vi:"Xe không phải lúc nào cũng dừng. Hãy giơ tay khi xe đến.",ru:"Автобус может проехать мимо — поднимите руку, когда он подходит."},
+  {en:"Inside, the screen and announcements show the next stop in Korean and English. Press the red 'STOP' button before your stop.",ja:"車内の画面と放送で次の停留所が韓国語・英語で案内されます。降りる前に赤い降車ボタンを押します。",zh:"车内屏幕和广播用韩英双语报站。到站前按红色下车按钮。",vi:"Màn hình và loa báo trạm kế tiếp bằng tiếng Hàn và Anh. Bấm nút đỏ 'STOP' trước trạm của bạn.",ru:"На экране и в объявлениях — следующая остановка по-корейски и по-английски. Нажмите красную кнопку STOP заранее."}
+];
+// ===== Step text templates =====
+const S = {
+  buy:{
+    en:()=>"Buy a T-money transit card at a convenience store in the arrivals hall and top it up with cash (₩20,000 is plenty).",
+    ja:()=>"到着ロビーのコンビニでT-moneyカードを買い、現金でチャージします（20,000ウォンで十分）。",
+    zh:()=>"在到达大厅的便利店购买T-money交通卡，并用现金充值（2万韩元足够）。",
+    vi:()=>"Mua thẻ giao thông T-money ở cửa hàng tiện lợi tại sảnh đến và nạp tiền mặt (20.000₩ là đủ).",
+    ru:()=>"Купите транспортную карту T-money в магазине в зоне прилёта и пополните наличными (₩20 000 достаточно)."},
+  toArex:{
+    en:()=>"Follow the blue “Train / Airport Railroad” signs down to the Transportation Center (B1).",
+    ja:()=>"青い「鉄道／空港鉄道」の案内に従い、交通センター（地下1階）へ降ります。",
+    zh:()=>"跟随蓝色“铁路／机场铁路”指示牌，下到交通中心（B1层）。",
+    vi:()=>"Đi theo biển xanh “Tàu / Đường sắt sân bay” xuống Trung tâm giao thông (tầng B1).",
+    ru:()=>"Идите по синим указателям «Поезд / Airport Railroad» вниз в транспортный центр (B1)."},
+  board:{
+    en:()=>"Tap your card at the gate. Take the All-stop train (일반열차), not the Express. Every train here goes toward Seoul Station.",
+    ja:()=>"改札でカードをタッチ。直通列車ではなく一般列車（일반열차）に乗ります。ここから出る列車はすべてソウル駅方面です。",
+    zh:()=>"在闸机刷卡。乘坐普通列车（일반열차），不要坐直达列车。这里的列车都开往首尔站方向。",
+    vi:()=>"Chạm thẻ ở cổng. Đi tàu thường (일반열차), không đi tàu tốc hành. Mọi tàu ở đây đều đi hướng Ga Seoul.",
+    ru:()=>"Приложите карту на турникете. Садитесь на обычный поезд (일반열차), не на экспресс. Все поезда идут в сторону вокзала Сеул."},
+  ride:{
+    en:p=>`Ride ${p.n} stops, about ${p.m} min. Get off at ${p.st}.`,
+    ja:p=>`${p.n}駅、約${p.m}分乗車。${p.st}で降ります。`,
+    zh:p=>`乘坐${p.n}站，约${p.m}分钟，在${p.st}下车。`,
+    vi:p=>`Đi ${p.n} ga, khoảng ${p.m} phút. Xuống tại ${p.st}.`,
+    ru:p=>`Проедьте ${p.n} ост., около ${p.m} мин. Выходите на станции ${p.st}.`},
+  xfer:{
+    en:p=>`Transfer: follow the ${p.line} signs. Use the platform marked “${p.next}” as the next station.`,
+    ja:p=>`乗換：${p.line}の案内に従います。次の駅が「${p.next}」と書かれたホームへ。`,
+    zh:p=>`换乘：跟随${p.line}指示牌，前往下一站为“${p.next}”的站台。`,
+    vi:p=>`Chuyển tuyến: đi theo biển ${p.line}. Chọn sân ga có ga kế tiếp là “${p.next}”.`,
+    ru:p=>`Пересадка: идите по указателям «${p.line}». Нужна платформа, где следующая станция — «${p.next}».`},
+  exit:{
+    en:p=>`Tap your card again at the gate and go out Exit ${p.n} (${p.place}).`,
+    ja:p=>`改札でもう一度タッチし、${p.n}番出口（${p.place}）から出ます。`,
+    zh:p=>`出站时再刷一次卡，从${p.n}号出口（${p.place}）出去。`,
+    vi:p=>`Chạm thẻ lần nữa ở cổng và ra Cửa số ${p.n} (${p.place}).`,
+    ru:p=>`Снова приложите карту и выходите через выход № ${p.n} (${p.place}).`},
+  arrive:{
+    en:p=>`You're in ${p.place}. Open the Korean card to show your hotel address to a taxi driver or anyone nearby.`,
+    ja:p=>`${p.place}に到着です。韓国語カードでホテルの住所をタクシー運転手や周りの人に見せましょう。`,
+    zh:p=>`已到达${p.place}。打开韩语卡，把酒店地址出示给出租车司机或路人。`,
+    vi:p=>`Bạn đã đến ${p.place}. Mở thẻ tiếng Hàn để đưa địa chỉ khách sạn cho tài xế taxi hoặc người xung quanh.`,
+    ru:p=>`Вы в районе ${p.place}. Откройте корейскую карточку и покажите адрес отеля таксисту или прохожим.`},
+  busFind:{
+    en:p=>p.t==="T1"?"Go out of Arrivals on 1F. Find the airport bus stop that lists bus 6015.":"Go down to the Transportation Center (B1) and find the bus stop that lists bus 6015.",
+    ja:p=>p.t==="T1"?"1階到着ロビーから外に出て、6015番が停まるバス乗り場を探します。":"交通センター（地下1階）へ降り、6015番のバス乗り場を探します。",
+    zh:p=>p.t==="T1"?"从1层到达大厅出门，找到标有6015路的机场巴士站。":"下到交通中心（B1层），找到标有6015路的巴士站。",
+    vi:p=>p.t==="T1"?"Ra khỏi sảnh đến tầng 1. Tìm trạm xe buýt sân bay có số 6015.":"Xuống Trung tâm giao thông (B1), tìm trạm có số 6015.",
+    ru:p=>p.t==="T1"?"Выйдите из зоны прилёта на 1-м этаже. Найдите остановку с номером 6015.":"Спуститесь в транспортный центр (B1) и найдите остановку автобуса 6015."},
+  busPay:{
+    en:()=>"Pay at the ticket counter or tap T-money when you board (₩17,000). Staff load big suitcases into the luggage hold.",
+    ja:()=>"乗車券売り場で購入するか、乗車時にT-moneyでタッチ（17,000ウォン）。大きな荷物はトランクに入れてもらえます。",
+    zh:()=>"在售票处购票或上车时刷T-money（17,000韩元）。大件行李由工作人员放入行李舱。",
+    vi:()=>"Mua vé ở quầy hoặc chạm T-money khi lên xe (17.000₩). Nhân viên sẽ xếp vali lớn vào khoang hành lý.",
+    ru:()=>"Оплата в кассе или картой T-money при посадке (₩17 000). Большие чемоданы кладут в багажное отделение."},
+  busRide:{
+    en:()=>"The bus goes to central Seoul via Mapo and Gongdeok. It takes about 70–90 min depending on traffic.",
+    ja:()=>"バスは麻浦・孔徳を経由してソウル中心部へ。渋滞により約70〜90分です。",
+    zh:()=>"巴士经麻浦、孔德开往首尔市中心，视路况约70–90分钟。",
+    vi:()=>"Xe đi vào trung tâm Seoul qua Mapo và Gongdeok, mất khoảng 70–90 phút tùy giao thông.",
+    ru:()=>"Автобус идёт в центр Сеула через Мапхо и Конток. В пути 70–90 мин в зависимости от пробок."},
+  busOff:{
+    en:()=>"Get off at “Myeong-dong Station” (명동역). Watch the screen, or show the driver your Korean card when you board.",
+    ja:()=>"「明洞駅」（명동역）で降ります。画面を確認するか、乗車時に運転手に韓国語カードを見せましょう。",
+    zh:()=>"在“明洞站”（명동역）下车。留意车内屏幕，或上车时把韩语卡给司机看。",
+    vi:()=>"Xuống tại “Ga Myeong-dong” (명동역). Xem màn hình, hoặc đưa thẻ tiếng Hàn cho tài xế khi lên xe.",
+    ru:()=>"Выходите на остановке «Myeong-dong Station» (명동역). Следите за экраном или покажите водителю карточку при посадке."}
+};
+
+const PLACE_EXIT = {
+  hongdae:{n:9,place:{en:"Hongdae street",ja:"弘大の通り",zh:"弘大街",vi:"phố Hongdae",ru:"улица Хондэ"}},
+  myeongdong:{n:6,place:{en:"Myeongdong shopping street",ja:"明洞の繁華街",zh:"明洞商业街",vi:"phố mua sắm Myeongdong",ru:"торговая улица Мёндон"}},
+  gangnam:{n:11,place:{en:"Gangnam-daero",ja:"江南大路",zh:"江南大路",vi:"đại lộ Gangnam",ru:"Каннам-дэро"}}
+};
+
+// ===== State =====
+const store = {
+  get(k,d){try{const v=localStorage.getItem("gilbeot."+k);return v===null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem("gilbeot."+k,JSON.stringify(v))}catch(e){}}
+};
+function detectLang(){
+  const n=((navigator.languages&&navigator.languages[0])||navigator.language||"en").toLowerCase();
+  for(const l of ["ja","zh","vi","ru"]) if(n.startsWith(l)) return l;
+  return "en";
+}
+const state = {
+  lang: store.get("lang", null),
+  tab: store.get("tab","route"),
+  term: store.get("term","T1"),
+  dest: store.get("dest","hongdae"),
+  mode: store.get("mode","train"),
+  done: store.get("done",[]),
+  hotel: store.get("hotel",{name:"",addr:""}),
+  phrase: store.get("phrase",0),
+  q:"", signQ:"", loc:null, locMsg:"", ocr:null
+};
+const firstRun = !state.lang;
+if(!state.lang) state.lang = detectLang();
+const L = ()=>state.lang;
+const t = k => (T[k]&&(T[k][L()]||T[k].en))||k;
+const tr = o => o? (o[L()]||o.en) : "";
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const stN = id => ST[id][L()]||ST[id].en;
+const place = id => PLACES.find(p=>p.id===id);
+const save = ()=>{["lang","tab","term","dest","mode","done","hotel","phrase"].forEach(k=>store.set(k,state[k]))};
+const lb = (key,small)=>{const l=LINES[key];return `<span class="lbadge" style="background:${l.c}" title="${esc(tr(l.n))}">${esc(l.s)}</span>`};
+
+// ===== Route builder =====
+function buildRoute(){
+  const T1 = state.term==="T1", from = T1?"t1":"t2", d = state.dest, steps=[];
+  const P = place(d);
+  const push=(kind,text,extra={})=>steps.push(Object.assign({kind,text},extra));
+  const sText = (k,p)=>S[k][L()](p||{});
+  if(state.mode==="bus"){
+    if(d!=="myeongdong") return null;
+    push("card",sText("buy"),{sign:{ko:"편의점 · 티머니",tr:"T-money"}});
+    push("bus",sText("busFind",{t:state.term}),{c:"#1F3F7A",sign:{ko:"6015 명동 · 을지로",tr:"Bus 6015"}});
+    push("bus",sText("busPay"),{c:"#1F3F7A",sign:{ko:"승차권 매표소",tr:tr({en:"Ticket counter",ja:"乗車券売り場",zh:"售票处",vi:"Quầy vé",ru:"Касса"})}});
+    push("bus",sText("busRide"),{c:"#1F3F7A",sign:{ko:"서울 시내 방면",tr:tr({en:"Toward central Seoul",ja:"ソウル市内方面",zh:"首尔市区方向",vi:"Hướng trung tâm Seoul",ru:"В центр Сеула"})}});
+    push("bus",sText("busOff"),{c:"#1F3F7A",sign:{ko:"명동역",tr:stN("myeongdong")}});
+    push("arrive",sText("arrive",{place:tr(P)}));
+    return {steps,min:T1?80:95,xfer:0,fare:"₩17,000",bus:true};
+  }
+  const arex = "#0090D2", l2="#00A84D", l4="#00A5DE";
+  push("card",sText("buy"),{sign:{ko:"편의점 · 티머니",tr:"T-money"}});
+  push("walk",sText("toArex"),{c:arex,sign:{ko:"공항철도",tr:tr(LINES.AREX.n)}});
+  push("train",sText("board"),{c:arex,line:"AREX",sign:{ko:"일반열차 · 서울역 방면",tr:tr({en:"All-stop train · toward Seoul Station",ja:"一般列車・ソウル駅方面",zh:"普通列车 · 首尔站方向",vi:"Tàu thường · hướng Ga Seoul",ru:"Обычный поезд · до вокзала Сеул"})}});
+  const extra = T1?0:1, addMin = T1?0:7;
+  let min=0, xfer=0;
+  if(d==="hongdae"||d==="gangnam"){
+    min = 52+addMin;
+    push("train",sText("ride",{n:10+extra,m:min,st:stN("hongik")}),{c:arex,line:"AREX",sign:{ko:"홍대입구",tr:stN("hongik")},station:"hongik"});
+    if(d==="hongdae"){
+      const E=PLACE_EXIT.hongdae;
+      push("exit",sText("exit",{n:E.n,place:tr(E.place)}),{exit:E.n,sign:{ko:`${E.n}번 출구`,tr:tr(E.place)}});
+    } else {
+      xfer=1;
+      push("walk",sText("xfer",{line:tr(LINES.L2.n),next:stN("hapjeong")}),{c:l2,line:"L2",sign:{ko:"2호선 · 합정 방면",tr:`${tr(LINES.L2.n)} · ${stN("hapjeong")}`}});
+      push("train",sText("ride",{n:17,m:36,st:stN("gangnam")}),{c:l2,line:"L2",sign:{ko:"강남",tr:stN("gangnam")},station:"gangnam"});
+      min += 8+36;
+      const E=PLACE_EXIT.gangnam;
+      push("exit",sText("exit",{n:E.n,place:tr(E.place)}),{exit:E.n,sign:{ko:`${E.n}번 출구`,tr:tr(E.place)}});
+    }
+  } else {
+    min = 59+addMin;
+    push("train",sText("ride",{n:12+extra,m:min,st:stN("seoul")}),{c:arex,line:"AREX",sign:{ko:"서울역",tr:stN("seoul")},station:"seoul"});
+    if(d==="myeongdong"){
+      xfer=1;
+      push("walk",sText("xfer",{line:tr(LINES.L4.n),next:stN("hoehyeon")}),{c:l4,line:"L4",sign:{ko:"4호선 · 회현 방면",tr:`${tr(LINES.L4.n)} · ${stN("hoehyeon")}`}});
+      push("train",sText("ride",{n:2,m:4,st:stN("myeongdong")}),{c:l4,line:"L4",sign:{ko:"명동",tr:stN("myeongdong")},station:"myeongdong"});
+      min += 10+4;
+      const E=PLACE_EXIT.myeongdong;
+      push("exit",sText("exit",{n:E.n,place:tr(E.place)}),{exit:E.n,sign:{ko:`${E.n}번 출구`,tr:tr(E.place)}});
+    }
+  }
+  push("arrive",sText("arrive",{place:tr(P)}));
+  return {steps,min,xfer};
+}
+function routeStations(){
+  const T1=state.term==="T1", ids=new Set([T1?"t1":"t2"]);
+  const add=(line,a,b)=>{const o=LINE_ORDER[line].map(x=>x[0]);let i=o.indexOf(a),j=o.indexOf(b);if(i>j)[i,j]=[j,i];o.slice(i,j+1).forEach(x=>ids.add(x))};
+  if(state.mode==="bus"){ids.add("myeongdong");return ids;}
+  const d=state.dest;
+  if(d==="hongdae"||d==="gangnam") add("AREX",T1?"t1":"t2","hongik"); else add("AREX",T1?"t1":"t2","seoul");
+  if(d==="gangnam") add("L2","hongik","gangnam");
+  if(d==="myeongdong") add("L4","seoul","myeongdong");
+  return ids;
+}
+
+// ===== Icons =====
+const IC = {
+  route:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H16a3.5 3.5 0 0 0 0-7H8a3.5 3.5 0 0 1 0-7h7.5"/></svg>',
+  map:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>',
+  metro:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 11h14M9 21l-2-4M15 21l2-4"/><circle cx="9" cy="14" r=".6" fill="currentColor"/><circle cx="15" cy="14" r=".6" fill="currentColor"/></svg>',
+  bus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M7 21v-3M17 21v-3"/><circle cx="8" cy="14.5" r=".6" fill="currentColor"/><circle cx="16" cy="14.5" r=".6" fill="currentColor"/></svg>',
+  scan:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 12h8"/></svg>',
+  card:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h6M7 14h10"/></svg>',
+  globe:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>'
+};
+const TABS=[["route","tabRoute"],["map","tabMap"],["metro","tabMetro"],["bus","tabBus"],["scan","tabScan"],["card","tabCard"]];
+
+// ===== Render =====
+const $ = s=>document.querySelector(s);
+function render(){
+  document.documentElement.lang = L()==="zh"?"zh-Hans":L();
+  $("#langLabel").textContent = LANGS.find(l=>l.id===L()).name;
+  $("#tagline").textContent = t("tagline");
+  $("#nav").innerHTML = TABS.map(([id,k])=>`<button data-tab="${id}" ${state.tab===id?'aria-current="page"':''}>${IC[id]}<span>${esc(t(k))}</span></button>`).join("");
+  const v = {route:vRouteWrap,map:vMapLive,metro:vMetro,bus:vBus,scan:vScan,card:vCard}[state.tab]||vRouteWrap;
+  $("#main").innerHTML = v();
+  if(state.tab==="map"){ drawLeaflet(); drawMap(); }
+  save(); fillTr();
+}
+
+function destButtons(){
+  return PLACES.filter(p=>p.route).map(p=>`<button class="dest" data-dest="${p.id}" aria-pressed="${state.dest===p.id}"><b>${esc(tr(p))}</b><span class="ko">${esc(p.ko)}</span></button>`).join("");
+}
+function vRoute(){
+  const R = buildRoute();
+  const P = place(state.dest);
+  let html = `<section class="panel">
+    <h1>${esc(t("airportTitle"))}</h1>
+    <div class="field"><label>${esc(t("arrivedAt"))}</label>
+      <div class="seg" role="group"><button data-term="T1" aria-pressed="${state.term==="T1"}">${esc(stN("t1"))}</button><button data-term="T2" aria-pressed="${state.term==="T2"}">${esc(stN("t2"))}</button></div></div>
+    <div class="field"><label>${esc(t("goingTo"))}</label><div class="dests">${destButtons()}</div></div>
+    <div class="field"><label>${esc(t("way"))}</label>
+      <div class="seg" role="group"><button data-mode="train" aria-pressed="${state.mode==="train"}">${esc(t("bySubway"))}</button><button data-mode="bus" aria-pressed="${state.mode==="bus"}">${esc(t("byBus"))}</button></div></div>
+  </section>`;
+  if(!R){
+    html += `<section class="panel"><p>${esc(t("noBus"))}</p><button class="btn" data-mode="train">${esc(t("bySubway"))}</button></section>`;
+    return html + tmoneyPanel();
+  }
+  const doneCount = R.steps.filter((_,i)=>state.done.includes(i)).length;
+  const lines = [...new Set(R.steps.map(s=>s.line).filter(Boolean))];
+  html += `<section class="panel">
+    <div class="row" style="justify-content:space-between">
+      <div><div class="eyebrow">${esc(stN(state.term==="T1"?"t1":"t2"))} → ${esc(tr(P))}</div>
+      <h2>${esc(t("about"))} ${R.min} ${esc(t("min"))} · ${R.xfer} ${esc(t("transfers"))}${R.fare?` · ${R.fare}`:""}</h2></div>
+      <div class="row">${R.bus?`<span class="lbadge" style="background:#1F3F7A">6015</span>`:lines.map(l=>lb(l)).join("")}</div>
+    </div>
+    <div class="row small muted"><span>${esc(t("progress"))}: ${doneCount}/${R.steps.length}</span>
+      <span style="flex:1;height:6px;border-radius:3px;background:var(--surface2);border:1px solid var(--line);overflow:hidden"><span style="display:block;height:100%;width:${Math.round(doneCount/R.steps.length*100)}%;background:var(--ok)"></span></span>
+      <button class="linkbtn" data-reset>${esc(t("reset"))}</button></div>
+    <div class="steps">${R.steps.map((s,i)=>stepHTML(s,i)).join("")}</div>
+    <p class="note">${esc(t("sample"))}</p>
+  </section>`;
+  return html + tmoneyPanel();
+}
+function stepHTML(s,i){
+  const done = state.done.includes(i);
+  const label = s.exit? `<span class="exitbadge">${s.exit}</span>` : (i+1);
+  return `<div class="step ${done?"done":""}" style="--stepc:${s.c||"var(--line)"}">
+    <div class="snum">${s.exit?'<span style="font-size:11px">EXIT</span>':label}</div>
+    <div class="scard">
+      <div class="stitle">${esc(s.text)}</div>
+      ${s.sign?`<div class="sign">${s.exit?`<span class="exitbadge">${s.exit}</span>`:(s.line?lb(s.line):"")}<div><div class="ko">${esc(s.sign.ko)}</div><div class="tr">${esc(t("lookFor"))} · ${esc(s.sign.tr)}</div></div></div>`:""}
+      <div class="sacts">
+        <button class="btn sm ${done?"ghost":""}" data-done="${i}">${done?esc(t("undo")):"✓ "+esc(t("markDone"))}</button>
+        ${s.sign?`<button class="btn sm ghost" data-show="${esc(s.sign.ko)}" data-showtr="${esc(s.sign.tr)}">${esc(t("showKo"))}</button>`:""}
+        ${s.kind==="arrive"?`<button class="btn sm ghost" data-tab="card">${esc(t("tabCard"))}</button>`:""}
+      </div>
+    </div></div>`;
+}
+function tmoneyPanel(){
+  return `<section class="panel"><details class="guide"><summary>${esc(t("firstTime"))} · ${esc(t("tmoneyTitle"))}</summary>
+    <ol class="list" style="margin-top:10px">${TMONEY.map(s=>`<li>${esc(tr(s))} <span class="ko muted small">「${esc(s.ko)}」</span></li>`).join("")}</ol></details></section>`;
+}
+
+// ----- Map -----
+const BOUNDS={w:126.86,e:127.12,s:37.47,n:37.60};
+const MAPW=400, MAPH=253;
+const px = (lat,lng)=>[ (lng-BOUNDS.w)/(BOUNDS.e-BOUNDS.w)*MAPW, (BOUNDS.n-lat)/(BOUNDS.n-BOUNDS.s)*MAPH ];
+const SC = {seoul:[37.5547,126.9707],gongdeok:[37.5443,126.9516],hongik:[37.5572,126.9245],dmc:[37.5770,126.8990],hapjeong:[37.5496,126.9139],dangsan:[37.5343,126.9021],sindorim:[37.5088,126.8913],daerim:[37.4926,126.8950],sillim:[37.4842,126.9296],sadang:[37.4765,126.9816],gyodae:[37.4934,127.0142],gangnam:[37.4979,127.0276],hoehyeon:[37.5588,126.9786],myeongdong:[37.5609,126.9863],chungmuro:[37.5612,126.9942],ddp:[37.5652,127.0079]};
+function vMap(){
+  const q=state.q.trim().toLowerCase();
+  const res = PLACES.filter(p=>!q|| [p.ko,p.en,p.ja,p.zh,p.vi,p.ru,p.area||""].some(v=>(v||"").toLowerCase().includes(q)));
+  const P = place(state.dest);
+  return `<section class="panel">
+    <h1>${esc(t("mapTitle"))}</h1>
+    <input type="search" id="q" placeholder="${esc(t("searchPh"))}" value="${esc(state.q)}" autocomplete="off">
+    <div class="mapbox"><svg id="mapsvg" viewBox="0 0 ${MAPW} ${MAPH}" role="img" aria-label="Seoul"></svg></div>
+    <div class="row"><button class="btn sm ghost" id="locbtn">📍 ${esc(t("myLoc"))}</button><span class="small muted" id="locmsg">${esc(state.locMsg)}</span></div>
+    <div class="results">${res.map(p=>`<button class="res" data-pick="${p.id}"><span><b>${esc(tr(p))}</b><br><span class="ko">${esc(p.ko)}</span></span><span class="chip" style="${p.id===state.dest?"border-color:var(--accent);color:var(--accent)":""}">${p.id===state.dest?"●":"›"}</span></button>`).join("")}</div>
+  </section>
+  ${P?placePanel(P):""}`;
+}
+function placePanel(P){
+  const n=encodeURIComponent(P.ko);
+  return `<section class="panel">
+    <div class="eyebrow">${esc(tr(P))}</div>
+    <div class="board"><div class="band" style="background:var(--accent)"></div><div class="bd"><div class="nm"><div class="ko">${esc(P.ko)}</div><div class="tr">${esc(tr(P))}${P.addr?` · <span class="ko">${esc(P.addr)}</span>`:""}</div></div></div></div>
+    <div class="row">
+      <a class="btn sm" href="https://map.naver.com/p/search/${n}" target="_blank" rel="noopener">${esc(t("openNaver"))}</a>
+      <a class="btn sm ghost" href="https://map.kakao.com/link/to/${n},${P.lat},${P.lng}" target="_blank" rel="noopener">${esc(t("openKakao"))}</a>
+      <a class="btn sm ghost" href="https://www.google.com/maps/dir/?api=1&destination=${P.lat},${P.lng}&travelmode=transit" target="_blank" rel="noopener">${esc(t("openGoogle"))}</a>
+      <button class="btn sm ghost" data-cardfor="${P.id}">${esc(t("setDest"))}</button>
+    </div>
+    <p class="small muted">${esc(t("mapTip"))}</p>
+  </section>`;
+}
+function drawMap(){
+  const svg=$("#mapsvg"); if(!svg) return;
+  const cs=getComputedStyle(document.documentElement);
+  const ink=cs.getPropertyValue("--ink").trim(), muted=cs.getPropertyValue("--muted").trim(), surf=cs.getPropertyValue("--surface").trim(), acc=cs.getPropertyValue("--accent").trim();
+  const poly=(ids,c,w)=>`<polyline fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" points="${ids.map(id=>px(...SC[id]).join(",")).join(" ")}"/>`;
+  const river=[[37.585,126.86],[37.56,126.9],[37.545,126.93],[37.53,126.96],[37.515,127.0],[37.52,127.04],[37.53,127.07],[37.525,127.12]].map(p=>px(p[0],p[1]).join(",")).join(" ");
+  let g=`<rect width="${MAPW}" height="${MAPH}" fill="${surf}" opacity=".35"/>`;
+  g+=`<polyline fill="none" stroke="#8EC5E6" stroke-opacity=".55" stroke-width="12" stroke-linecap="round" points="${river}"/>`;
+  g+=`<text x="${px(37.522,127.05)[0]}" y="${px(37.522,127.05)[1]+22}" font-size="10" fill="${muted}" font-family="IBM Plex Sans KR,sans-serif">한강 Han River</text>`;
+  const [ax,ay]=px(...SC.dmc);
+  g+=`<polyline fill="none" stroke="#0090D2" stroke-width="4" stroke-linecap="round" points="0,${ay+18} ${ax},${ay} ${px(...SC.hongik).join(",")} ${px(...SC.gongdeok).join(",")} ${px(...SC.seoul).join(",")}"/>`;
+  g+=poly(["hongik","hapjeong","dangsan","sindorim","daerim","sillim","sadang","gyodae","gangnam"],"#00A84D",4);
+  g+=poly(["seoul","hoehyeon","myeongdong","chungmuro","ddp"],"#00A5DE",4);
+  g+=`<text x="6" y="${MAPH-8}" font-size="10" fill="${muted}">← AREX · ${esc(stN("t1"))} ~50km</text>`;
+  const route=routeStations();
+  Object.keys(SC).forEach(id=>{const [x,y]=px(...SC[id]);const on=route.has(id);
+    g+=`<circle cx="${x}" cy="${y}" r="${on?5:3.5}" fill="${surf}" stroke="${on?ink:muted}" stroke-width="${on?2.5:1.5}"/>`;
+    if(["seoul","hongik","gangnam","myeongdong","sindorim","sadang"].includes(id)) g+=`<text x="${x+7}" y="${y-6}" font-size="10.5" font-weight="700" fill="${ink}">${esc(stN(id).replace(/（.*?）|\(.*?\)/g,""))}</text>`;
+  });
+  PLACES.filter(p=>!p.route&&p.lat<BOUNDS.n&&p.lat>BOUNDS.s&&p.lng>BOUNDS.w&&p.lng<BOUNDS.e).forEach(p=>{const [x,y]=px(p.lat,p.lng);
+    g+=`<g data-pick="${p.id}" style="cursor:pointer"><rect x="${x-4}" y="${y-4}" width="8" height="8" transform="rotate(45 ${x} ${y})" fill="${p.id===state.dest?acc:muted}"/></g>`;});
+  const P=place(state.dest);
+  if(P&&P.lat<BOUNDS.n&&P.lat>BOUNDS.s){const [x,y]=px(P.lat,P.lng);
+    g+=`<g><path d="M${x} ${y} l-8 -16 a9 9 0 1 1 16 0 z" fill="${acc}" stroke="${surf}" stroke-width="1.5"/><circle cx="${x}" cy="${y-19}" r="3.2" fill="${surf}"/></g>`;
+    const lbl=tr(P); const tx=Math.min(x+10,MAPW-8-lbl.length*6.2);
+    g+=`<text x="${tx}" y="${y+14}" font-size="11.5" font-weight="800" fill="${acc}">${esc(lbl)}</text>`;}
+  if(state.loc){const {lat,lng}=state.loc;
+    if(lat<BOUNDS.n&&lat>BOUNDS.s&&lng>BOUNDS.w&&lng<BOUNDS.e){const [x,y]=px(lat,lng);
+      g+=`<circle cx="${x}" cy="${y}" r="11" fill="#2F80ED" opacity=".2"/><circle cx="${x}" cy="${y}" r="5.5" fill="#2F80ED" stroke="#fff" stroke-width="2"/><text x="${x+9}" y="${y+4}" font-size="11" font-weight="700" fill="#2F80ED">${esc(t("youHere"))}</text>`;}}
+  svg.innerHTML=g;
+}
+function locate(){
+  const done=m=>{state.locMsg=m;const el=$("#locmsg");if(el)el.textContent=m;};
+  if(!navigator.geolocation){done(t("locOff"));return;}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    state.loc={lat:pos.coords.latitude,lng:pos.coords.longitude};
+    let best=null,bd=1e9;PLACES.forEach(p=>{const d=Math.hypot(p.lat-state.loc.lat,(p.lng-state.loc.lng)*0.79);if(d<bd){bd=d;best=p}});
+    done(`${t("nearest")}: ${tr(best)} (~${Math.max(0.1,bd*111).toFixed(1)} km)`);drawMap();
+  },()=>done(t("locOff")),{timeout:8000,maximumAge:60000});
+}
+
+// ----- Metro -----
+let metroLine = "AREX";
+function vMetro(){
+  const route=routeStations();
+  const order=LINE_ORDER[metroLine], lc=LINES[metroLine].c;
+  const rows=order.map(([id,code],i)=>{const s=ST[id];const xs=s.x.filter(x=>x!==metroLine);const gap=LINE_GAP[metroLine]===id;
+    return `${gap?`<div class="st" style="--lc:transparent"><span class="code">⋯</span><span class="dot" style="--lc:${lc};opacity:.35"></span><span class="small muted">⋯</span></div>`:""}
+    <div class="st ${xs.length?"xfer":""}" style="--lc:${lc}"><span class="code">${code}</span><span class="dot"><i></i></span>
+      <div class="nm"><span class="ko">${esc(s.ko)}${route.has(id)?` <span class="chip" style="color:var(--accent);border-color:var(--accent);padding:0 7px">${esc(t("onRoute"))}</span>`:""}</span><span class="tr">${esc(s[L()]||s.en)}</span>
+      ${xs.length?`<span class="xl"><span class="small muted" style="margin-right:2px">${esc(t("xferTo"))}</span>${xs.map(x=>lb(x)).join("")}</span>`:""}</div></div>`}).join("");
+  return `<section class="panel"><h1>${esc(t("metroTitle"))}</h1>
+    <div class="linetabs">${["AREX","L2","L4"].map(k=>`<button style="--lc:${LINES[k].c}" data-line="${k}" aria-pressed="${metroLine===k}">${esc(tr(LINES[k].n))} <span class="ko" style="opacity:.8;font-weight:500">${LINES[k].ko}</span></button>`).join("")}</div>
+    <p class="small muted">${esc(t("metroNote"))}</p>
+    <div class="stlist">${rows}</div></section>
+    <section class="panel"><h3>${esc(tr({en:"Line colors",ja:"路線の色",zh:"线路颜色",vi:"Màu các tuyến",ru:"Цвета линий"}))}</h3>
+    <div class="row">${Object.keys(LINES).map(k=>`<span class="chip">${lb(k)} ${esc(tr(LINES[k].n))}</span>`).join("")}</div></section>`;
+}
+
+// ----- Bus -----
+function vBus(){
+  const T1=state.term==="T1";
+  const fields=[
+    [t("busNo"),`<span class="lbadge" style="background:#1F3F7A;font-size:14px;height:28px">6015</span> <span class="ko">명동 · 을지로 · 마포</span>`],
+    [t("boardAt"),`${esc(stN(T1?"t1":"t2"))} · ${T1?esc(tr({en:"1F Arrivals, outside",ja:"1階到着ロビーの外",zh:"1层到达大厅外",vi:"Bên ngoài sảnh đến tầng 1",ru:"1 этаж, выход из прилёта"})):esc(tr({en:"B1 Transportation Center",ja:"地下1階 交通センター",zh:"B1层交通中心",vi:"Trung tâm giao thông B1",ru:"Транспортный центр B1"}))}`],
+    [t("direction"),`<span class="ko">서울 시내 (마포 → 공덕 → 명동)</span><br><span class="small muted">${esc(tr({en:"Toward central Seoul",ja:"ソウル市内方面",zh:"首尔市区方向",vi:"Hướng trung tâm Seoul",ru:"В центр Сеула"}))}</span>`],
+    [t("getOffAt"),`<span class="ko"><b>명동역</b></span> · ${esc(stN("myeongdong"))}`],
+    [t("fare"),"₩17,000 · T-money / card"]
+  ];
+  return `<section class="panel"><h1>${esc(t("busTitle"))}</h1>
+    <div class="eyebrow">${esc(stN(T1?"t1":"t2"))} → ${esc(tr(place("myeongdong")))}</div>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:10px 14px;align-items:start">${fields.map(([k,v])=>`<div class="small muted" style="font-weight:700">${esc(k)}</div><div>${v}</div>`).join("")}</div>
+    <div class="row"><button class="btn sm" data-gobus>${esc(t("tabRoute"))} →</button><button class="btn sm ghost" data-show="6015 명동역 가나요?" data-showtr="${esc(tr(PHRASES[3]))}">${esc(t("showKo"))}</button></div>
+    <p class="note">${esc(t("sample"))}</p></section>
+    <section class="panel"><h2>${esc(t("busColors"))}</h2><div class="buscolors">${BUS_COLORS.map(b=>`<div class="bc"><i style="background:${b.c}"></i><div><div class="ko" style="font-weight:700">${b.ko}</div><div class="small muted">${esc(tr(b))}</div></div></div>`).join("")}</div></section>
+    <section class="panel"><h2>${esc(t("busRules"))}</h2><ol class="list">${BUS_RULES.map(r=>`<li>${esc(tr(r))}</li>`).join("")}</ol></section>`;
+}
+
+// ----- Sign scan -----
+function signMatches(q){
+  q=(q||"").trim().toLowerCase().replace(/\s+/g,""); if(!q) return [];
+  return Object.keys(ST).filter(id=>{const s=ST[id];return [s.ko,s.en,s.ja,s.zh,s.vi,s.ru].some(v=>v.toLowerCase().replace(/\s+/g,"").includes(q))||q.includes(s.ko)});
+}
+function liveMatchHTML(q){
+  q=(q||"").trim().toLowerCase().replace(/\s+/g,""); if(!q) return "";
+  const m=liveRouteNames(); const out=[];
+  m.forEach((loc,ko)=>{if(Object.values(ST).some(s=>s.ko===ko))return;const k2=ko.replace(/\s+/g,"");if(k2.includes(q)||q.includes(k2)||(loc||"").toLowerCase().replace(/\s+/g,"").includes(q))out.push([ko,loc])});
+  return out.slice(0,6).map(([ko,loc])=>`<div class="board"><div class="band" style="background:var(--ok)"></div><div class="bd"><div class="nm" style="flex:1"><div class="ko">${esc(ko)}</div><div class="tr">${esc(loc||romanize(ko))}</div><div class="small" style="color:var(--ok);font-weight:700">✓ ${esc(t("onRoute"))}</div></div></div></div>`).join("");
+}
+function boardHTML(id){
+  const s=ST[id],route=routeStations(),on=route.has(id);
+  return `<div class="board"><div class="band" style="background:${LINES[s.x[0]].c}"></div><div class="bd">
+    <div class="row" style="flex-direction:column;gap:4px">${s.x.map(x=>lb(x)).join("")}</div>
+    <div class="nm" style="flex:1"><div class="ko">${esc(s.ko)}</div><div class="tr">${esc(s[L()]||s.en)}</div>
+    <div class="small" style="color:${on?"var(--ok)":"var(--muted)"};font-weight:700">${on?"✓ "+esc(t("onRoute")):esc(t("notRoute"))}</div></div></div></div>`;
+}
+function vScan(){
+  const o=state.ocr;
+  const ms=signMatches(state.signQ);
+  return `<section class="panel"><h1>${esc(t("scanTitle"))}</h1><p class="muted">${esc(t("scanDesc"))}</p>
+    <label class="btn" for="photo">📷 ${esc(t("takePhoto"))}</label>
+    <input id="photo" type="file" accept="image/*" capture="environment" hidden>
+    ${o&&o.img?`<img class="preview" src="${o.img}" alt="">`:""}
+    ${o?`<div id="ocrout">${ocrHTML()}</div>`:""}
+  </section>
+  <section class="panel"><div class="field"><label for="signq">${esc(t("typeSign"))}</label>
+    <input type="search" id="signq" value="${esc(state.signQ)}" placeholder="명동 / Myeongdong" autocomplete="off"></div>
+    <div id="signres" class="results">${ms.map(boardHTML).join("")}${liveMatchHTML(state.signQ)}</div>
+    <div class="row">${[...new Set([...routeStations(),"seoul","hongik","myeongdong","gangnam"])].map(id=>`<button class="chip" data-sq="${esc(ST[id].ko)}">${esc(ST[id].ko)}</button>`).join("")}</div>
+  </section>`;
+}
+function ocrHTML(){
+  const o=state.ocr; if(!o) return "";
+  if(o.status==="busy") return `<p class="muted">${esc(t("reading"))}</p>`;
+  if(o.status==="off") return `<p class="note">${esc(t("ocrOff"))}</p>`;
+  const lv=(o.live||[]).map(k=>liveMatchHTML(k)).join("");
+  if(!o.ids.length&&!lv) return `<p class="note">${esc(t("noMatch"))}</p>`;
+  return `<div class="eyebrow">${esc(t("found"))}</div><div class="results">${o.ids.map(boardHTML).join("")}${lv}</div>`;
+}
+let tessLoading=null;
+function loadTess(){
+  if(window.Tesseract) return Promise.resolve();
+  if(tessLoading) return tessLoading;
+  tessLoading=new Promise((ok,no)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";s.onload=ok;s.onerror=no;document.head.appendChild(s)});
+  return tessLoading;
+}
+async function runOCR(file){
+  const img=URL.createObjectURL(file);
+  state.ocr={status:"busy",img,ids:[]};render();
+  const upd=()=>{const el=$("#ocrout");if(el)el.innerHTML=ocrHTML();};
+  try{
+    await loadTess();
+    const job=window.Tesseract.recognize(file,"kor");
+    const r=await Promise.race([job,new Promise((_,no)=>setTimeout(()=>no("timeout"),45000))]);
+    const text=(r.data.text||"").replace(/\s+/g,"");
+    const ids=Object.keys(ST).filter(id=>text.includes(ST[id].ko));
+    ids.sort((a,b)=>ST[b].ko.length-ST[a].ko.length);
+    state.ocr={status:"ok",img,ids:ids.filter((id,i)=>!ids.slice(0,i).some(o=>ST[o].ko.includes(ST[id].ko))),live:[...liveRouteNames().keys()].filter(k=>k.length>1&&text.includes(k.replace(/\s+/g,"")))};
+  }catch(e){state.ocr={status:"off",img,ids:[]};}
+  upd();
+}
+
+// ----- Korean card -----
+function cardDest(){
+  if(state.to){return {ko:state.to.ko,addr:state.to.addr||"",label:state.to.local?tr(state.to.local):romanize(state.to.ko)}}
+  const P=place(state.dest);return {ko:P?P.ko:"",addr:P?P.addr:"",label:P?tr(P):""};
+}
+function cardParts(){const D=cardDest();const nmv=state.hotel.name.trim()||D.ko;const ad=state.hotel.addr.trim()||(!state.hotel.name.trim()?D.addr:"");return {D,nm:nmv,ad};}
+function vCard(){
+  const {D,nm:name,ad:addr}=cardParts();
+  const ph=PHRASES[state.phrase]||PHRASES[0];
+  return `<section class="panel"><h1>${esc(t("cardTitle"))}</h1>
+    <div class="kcard" id="kcard">
+      <div class="big">${esc(name)}</div>
+      ${addr?`<div class="addr">${esc(addr)}</div>`:""}
+      <div class="say">${esc(ph.ko)}</div>
+      <div class="tr">${esc(D.label)} · ${esc(tr(ph))}</div>
+    </div>
+    <div class="row"><button class="btn sm" id="fullcard">${esc(t("bigger"))}</button><button class="btn sm ghost" id="copyko">${esc(t("copy"))}</button></div>
+    <div class="field"><label for="hname">${esc(t("hotelName"))}</label><input type="text" id="hname" value="${esc(state.hotel.name)}" placeholder="${esc(D.ko)}"></div>
+    <div class="field"><label for="haddr">${esc(t("hotelAddr"))}</label><textarea id="haddr" placeholder="서울 중구 …">${esc(state.hotel.addr)}</textarea></div>
+  </section>
+  <section class="panel"><h2>${esc(t("phrases"))}</h2><p class="small muted">${esc(t("tapPhrase"))}</p>
+    <div class="phr">${PHRASES.map((p,i)=>`<button data-phrase="${i}" style="${i===state.phrase?"border-color:var(--accent);background:var(--accent-soft)":""}"><span class="ko">${esc(p.ko)}</span><span class="tr">${esc(tr(p))}</span></button>`).join("")}</div></section>`;
+}
+
+// ===== Overlays =====
+function showBig(ko,sub){
+  const d=document.createElement("div");d.className="sheet";d.style.alignItems="center";
+  d.innerHTML=`<div class="in" style="border-radius:18px;margin:16px;width:calc(100% - 32px)"><div class="kcard"><div class="big" style="font-size:40px">${esc(ko).replace(/\n/g,"<br>")}</div>${sub?`<div class="tr" style="font-size:15px">${esc(sub)}</div>`:""}</div><button class="btn" data-close>${esc(t("close"))}</button></div>`;
+  d.addEventListener("click",e=>{if(e.target===d||e.target.closest("[data-close]"))d.remove()});
+  document.body.appendChild(d);
+}
+function langSheet(first){
+  const d=document.createElement("div");d.className="sheet";
+  d.innerHTML=`<div class="in"><h2>${esc(t("chooseLang"))}</h2>${first?`<p class="small muted">${esc(t("autoDetected"))}</p>`:""}
+    <div class="langs">${LANGS.map(l=>`<button data-lang="${l.id}" aria-pressed="${l.id===L()}"><span>${l.name}</span><span>${l.id===L()?"✓":""}</span></button>`).join("")}</div></div>`;
+  d.addEventListener("click",e=>{const b=e.target.closest("[data-lang]");if(b){state.lang=b.dataset.lang;d.remove();render();}else if(e.target===d)d.remove();});
+  document.body.appendChild(d);
+}
+function toast(m){const el=document.createElement("div");el.className="toast";el.textContent=m;document.body.appendChild(el);setTimeout(()=>el.remove(),1600)}
+async function copyText(s){
+  try{await navigator.clipboard.writeText(s);toast(t("copied"));}
+  catch(e){const r=document.createRange();const k=$("#kcard");if(k){r.selectNodeContents(k);const sel=getSelection();sel.removeAllRanges();sel.addRange(r);}}
+}
+
+// ===== Events =====
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button,[data-pick]"); if(!b) return;
+  const ds=b.dataset;
+  if(ds.tab){state.tab=ds.tab;render();scrollTo(0,0);return;}
+  if(ds.term){state.term=ds.term;state.done=[];render();return;}
+  if(ds.dest){state.dest=ds.dest;state.done=[];const p=place(ds.dest);state.to={ko:p.ko,addr:p.addr||"",lat:p.lat,lng:p.lng,local:p};state.routes=null;saveLive();render();return;}
+  if(ds.mode){state.mode=ds.mode;state.done=[];render();return;}
+  if(ds.done!==undefined){const i=+ds.done;state.done=state.done.includes(i)?state.done.filter(x=>x!==i):[...state.done,i];render();return;}
+  if("reset" in ds){state.done=[];render();return;}
+  if(ds.show){showBig(ds.show,ds.showtr);return;}
+  if(ds.pick){const p=place(ds.pick);if(p.route)state.dest=p.id;state.to={ko:p.ko,addr:p.addr||"",lat:p.lat,lng:p.lng,local:p};state.routes=null;saveLive();render();return;}
+  if(ds.cardfor){const p=place(ds.cardfor);if(p&&p.route)state.dest=p.id;state.hotel={name:"",addr:""};state.tab="card";render();scrollTo(0,0);return;}
+  if(ds.line){metroLine=ds.line;render();return;}
+  if("gobus" in ds){state.dest="myeongdong";state.mode="bus";state.done=[];state.tab="route";render();scrollTo(0,0);return;}
+  if(ds.sq){state.signQ=ds.sq;render();return;}
+  if(ds.phrase!==undefined){state.phrase=+ds.phrase;render();return;}
+  if(b.id==="locbtn"){locate();return;}
+  if(b.id==="langbtn"){langSheet(false);return;}
+  if(b.id==="fullcard"){const c=cardParts();showBig(c.nm+(c.ad?"\n"+c.ad:""),(PHRASES[state.phrase]||PHRASES[0]).ko);return;}
+  if(b.id==="copyko"){const c=cardParts();copyText([c.nm,c.ad,(PHRASES[state.phrase]||PHRASES[0]).ko].filter(Boolean).join("\n"));return;}
+});
+document.addEventListener("input",e=>{
+  const el=e.target;
+  if(el.id==="q"){state.q=el.value;const pos=el.selectionStart;render();const n=$("#q");n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}}
+  if(el.id==="signq"){state.signQ=el.value;$("#signres").innerHTML=signMatches(el.value).map(boardHTML).join("")+liveMatchHTML(el.value);}
+  if(el.id==="hname"||el.id==="haddr"){state.hotel={name:$("#hname").value,addr:$("#haddr").value};save();
+    const k=$("#kcard");if(k){const c=cardParts();const ph=PHRASES[state.phrase]||PHRASES[0];
+      k.innerHTML=`<div class="big">${esc(c.nm)}</div>${c.ad?`<div class="addr">${esc(c.ad)}</div>`:""}<div class="say">${esc(ph.ko)}</div><div class="tr">${esc(c.D.label)} · ${esc(tr(ph))}</div>`;}}
+});
+document.addEventListener("change",e=>{if(e.target.id==="photo"&&e.target.files&&e.target.files[0])runOCR(e.target.files[0]);});
+
+// ===================== LIVE DATA LAYER =====================
+const LT = {
+  live:{en:"Live route",ja:"リアルタイム経路",zh:"实时路线",vi:"Lộ trình trực tiếp",ru:"Живой маршрут"},
+  guide:{en:"Airport guide (offline)",ja:"空港ガイド（オフライン）",zh:"机场指南（离线）",vi:"Hướng dẫn sân bay (offline)",ru:"Гид из аэропорта (офлайн)"},
+  from:{en:"From",ja:"出発",zh:"出发",vi:"Từ",ru:"Откуда"},
+  to:{en:"To",ja:"目的地",zh:"目的地",vi:"Đến",ru:"Куда"},
+  here:{en:"My location",ja:"現在地",zh:"当前位置",vi:"Vị trí của tôi",ru:"Я здесь"},
+  searchTo:{en:"Hotel, station, place… (any language)",ja:"ホテル・駅・場所（何語でも）",zh:"酒店、车站、地点（任何语言）",vi:"Khách sạn, ga, địa điểm… (mọi ngôn ngữ)",ru:"Отель, станция, место… (на любом языке)"},
+  find:{en:"Find route",ja:"経路を検索",zh:"查询路线",vi:"Tìm lộ trình",ru:"Найти маршрут"},
+  searching:{en:"Searching…",ja:"検索中…",zh:"搜索中…",vi:"Đang tìm…",ru:"Ищем…"},
+  options:{en:"Route options",ja:"経路の候補",zh:"可选路线",vi:"Các lộ trình",ru:"Варианты"},
+  walk:{en:"walk",ja:"徒歩",zh:"步行",vi:"đi bộ",ru:"пешком"},
+  needLoc:{en:"Allow location access, or choose an airport terminal as the start.",ja:"位置情報を許可するか、出発地に空港ターミナルを選んでください。",zh:"请允许定位，或选择机场航站楼作为出发地。",vi:"Hãy cho phép vị trí, hoặc chọn nhà ga sân bay làm điểm xuất phát.",ru:"Разрешите геолокацию или выберите терминал аэропорта как старт."},
+  pickTo:{en:"Choose a destination first.",ja:"先に目的地を選んでください。",zh:"请先选择目的地。",vi:"Hãy chọn điểm đến trước.",ru:"Сначала выберите пункт назначения."},
+  tooClose:{en:"It's within walking distance (under 700 m). Use the map app to walk there.",ja:"徒歩圏内です（700m未満）。地図アプリで歩いて向かってください。",zh:"距离很近（700米以内），请用地图应用步行前往。",vi:"Rất gần (dưới 700 m). Hãy đi bộ theo ứng dụng bản đồ.",ru:"Это рядом (меньше 700 м). Дойдите пешком по карте."},
+  apiErr:{en:"Couldn't get a live route right now. Try again, or use the offline airport guide.",ja:"現在リアルタイム経路を取得できません。再試行するか、オフラインガイドを使ってください。",zh:"暂时无法获取实时路线。请重试或使用离线机场指南。",vi:"Chưa lấy được lộ trình trực tiếp. Thử lại hoặc dùng hướng dẫn offline.",ru:"Не удалось получить маршрут. Повторите или используйте офлайн-гид."},
+  noKey:{en:"Live routes are not set up on this server yet. Showing the offline airport guide.",ja:"このサーバーではリアルタイム経路が未設定です。オフラインガイドを表示します。",zh:"服务器尚未配置实时路线，显示离线机场指南。",vi:"Máy chủ chưa bật lộ trình trực tiếp. Đang hiện hướng dẫn offline.",ru:"Живые маршруты ещё не настроены. Показан офлайн-гид."},
+  walkTo:{en:p=>`Walk ${p.d} m (about ${p.m} min) to ${p.to}.`,ja:p=>`${p.to}まで徒歩${p.d}m（約${p.m}分）。`,zh:p=>`步行${p.d}米（约${p.m}分钟）到${p.to}。`,vi:p=>`Đi bộ ${p.d} m (khoảng ${p.m} phút) đến ${p.to}.`,ru:p=>`Пройдите ${p.d} м (около ${p.m} мин) до: ${p.to}.`},
+  walkDest:{en:"your destination",ja:"目的地",zh:"目的地",vi:"điểm đến",ru:"места назначения"},
+  enterExit:{en:p=>` Use Exit ${p}.`,ja:p=>` ${p}番出入口から入ります。`,zh:p=>` 从${p}号出入口进站。`,vi:p=>` Vào bằng Cửa số ${p}.`,ru:p=>` Вход через выход № ${p}.`},
+  subBoard:{en:p=>`At ${p.st}, take ${p.line} toward ${p.way}.`,ja:p=>`${p.st}で${p.line}（${p.way}方面）に乗ります。`,zh:p=>`在${p.st}乘坐${p.line}（往${p.way}方向）。`,vi:p=>`Tại ${p.st}, đi ${p.line} hướng ${p.way}.`,ru:p=>`На станции ${p.st} садитесь на ${p.line} в сторону ${p.way}.`},
+  door:{en:p=>` Best door for a fast exit: ${p}.`,ja:p=>` 降車に便利な乗車位置：${p}`,zh:p=>` 便于下车的车门：${p}`,vi:p=>` Cửa thuận tiện nhất: ${p}.`,ru:p=>` Удобная дверь: ${p}.`},
+  subRide:{en:p=>`Ride ${p.n} stops (about ${p.m} min). Get off at ${p.st}.`,ja:p=>`${p.n}駅（約${p.m}分）乗車し、${p.st}で降ります。`,zh:p=>`乘坐${p.n}站（约${p.m}分钟），在${p.st}下车。`,vi:p=>`Đi ${p.n} ga (khoảng ${p.m} phút). Xuống tại ${p.st}.`,ru:p=>`Проедьте ${p.n} ост. (около ${p.m} мин). Выходите: ${p.st}.`},
+  exitNo:{en:p=>`Tap your card at the gate and go out Exit ${p}.`,ja:p=>`改札でカードをタッチし、${p}番出口から出ます。`,zh:p=>`刷卡出站，从${p}号出口出去。`,vi:p=>`Chạm thẻ ở cổng và ra Cửa số ${p}.`,ru:p=>`Приложите карту и выходите через выход № ${p}.`},
+  busBoard:{en:p=>`At the stop “${p.st}”${p.ars?` (stop no. ${p.ars})`:""}, take bus ${p.no}. Next stop: ${p.next}.`,ja:p=>`停留所「${p.st}」${p.ars?`（番号${p.ars}）`:""}で${p.no}番バスに乗ります。次は「${p.next}」。`,zh:p=>`在“${p.st}”站${p.ars?`（站号${p.ars}）`:""}乘坐${p.no}路。下一站：${p.next}。`,vi:p=>`Tại trạm “${p.st}”${p.ars?` (số ${p.ars})`:""}, đón xe ${p.no}. Trạm kế: ${p.next}.`,ru:p=>`На остановке «${p.st}»${p.ars?` (№ ${p.ars})`:""} садитесь на автобус ${p.no}. Следующая: ${p.next}.`},
+  busRideL:{en:p=>`Ride ${p.n} stops (about ${p.m} min). Press the STOP button before “${p.st}” and get off there.`,ja:p=>`${p.n}停留所（約${p.m}分）。「${p.st}」の手前で降車ボタンを押して降ります。`,zh:p=>`乘坐${p.n}站（约${p.m}分钟）。到“${p.st}”前按下车铃下车。`,vi:p=>`Đi ${p.n} trạm (khoảng ${p.m} phút). Bấm nút STOP trước “${p.st}” rồi xuống.`,ru:p=>`Проедьте ${p.n} ост. (около ${p.m} мин). Нажмите STOP перед «${p.st}» и выходите.`},
+  arriveL:{en:p=>`You've arrived at ${p}. Show the Korean card if you need help finding the entrance.`,ja:p=>`${p}に到着です。入口が分からなければ韓国語カードを見せましょう。`,zh:p=>`已到达${p}。找不到入口时可出示韩语卡。`,vi:p=>`Bạn đã đến ${p}. Cần tìm lối vào thì đưa thẻ tiếng Hàn.`,ru:p=>`Вы прибыли: ${p}. Если не найдёте вход — покажите корейскую карточку.`},
+  liveArr:{en:"Live arrivals",ja:"リアルタイム到着",zh:"实时到站",vi:"Giờ đến trực tiếp",ru:"Прибытие онлайн"},
+  refresh:{en:"Refresh",ja:"更新",zh:"刷新",vi:"Làm mới",ru:"Обновить"},
+  minLeft:{en:p=>`${p} min`,ja:p=>`${p}分後`,zh:p=>`${p}分钟后`,vi:p=>`${p} phút nữa`,ru:p=>`через ${p} мин`},
+  stopsLeft:{en:p=>`${p} stops away`,ja:p=>`${p}つ前`,zh:p=>`还有${p}站`,vi:p=>`còn ${p} trạm`,ru:p=>`за ${p} ост.`},
+  soon:{en:"Arriving soon",ja:"まもなく到着",zh:"即将到站",vi:"Sắp đến",ru:"Скоро прибудет"},
+  ended:{en:"Service ended",ja:"運行終了",zh:"已停运",vi:"Đã hết chuyến",ru:"Рейсы окончены"},
+  waiting:{en:"Waiting to depart",ja:"出発待ち",zh:"等待发车",vi:"Chờ xuất bến",ru:"Ожидает отправления"},
+  yourDir:{en:"your direction",ja:"あなたの方面",zh:"您的方向",vi:"hướng của bạn",ru:"ваше направление"},
+  noLive:{en:"No live data for this stop right now.",ja:"現在この駅・停留所のリアルタイム情報はありません。",zh:"该站暂时没有实时信息。",vi:"Hiện chưa có dữ liệu trực tiếp cho trạm này.",ru:"Сейчас нет данных для этой остановки."},
+  liveOff:{en:"Live arrivals are not set up on this server.",ja:"リアルタイム到着情報は未設定です。",zh:"服务器未配置实时到站信息。",vi:"Máy chủ chưa bật giờ đến trực tiếp.",ru:"Онлайн-прибытие не настроено."},
+  busArea:{en:"Live bus times cover Seoul city buses only.",ja:"バスのリアルタイム情報はソウル市内バスのみ対応です。",zh:"实时公交仅支持首尔市内公交。",vi:"Giờ xe buýt trực tiếp chỉ có cho xe buýt nội thành Seoul.",ru:"Онлайн-данные только для городских автобусов Сеула."},
+  arvl:{0:{en:"Entering station",ja:"進入中",zh:"进站中",vi:"Đang vào ga",ru:"Прибывает"},1:{en:"At the platform",ja:"到着",zh:"已到站",vi:"Đã đến",ru:"На платформе"},2:{en:"Just left",ja:"出発",zh:"已出发",vi:"Vừa rời ga",ru:"Отправился"},3:{en:"Left the previous station",ja:"前駅を出発",zh:"已从上一站出发",vi:"Đã rời ga trước",ru:"Отправился с пред. станции"},4:{en:"Entering the previous station",ja:"前駅に進入中",zh:"正进入上一站",vi:"Đang vào ga trước",ru:"Прибывает на пред. станцию"},5:{en:"At the previous station",ja:"前駅に到着",zh:"已到上一站",vi:"Ở ga trước",ru:"На пред. станции"},99:{en:"On the way",ja:"運行中",zh:"运行中",vi:"Đang chạy",ru:"В пути"}},
+  resultsLbl:{en:"Places",ja:"場所",zh:"地点",vi:"Địa điểm",ru:"Места"},
+  chosen:{en:"Destination",ja:"目的地",zh:"目的地",vi:"Điểm đến",ru:"Пункт назначения"}
+};
+const lt = (k,p)=>{const o=LT[k];if(!o)return k;const v=o[L()]||o.en;return typeof v==="function"?v(p):v};
+
+// ---- Korean romanization (Revised Romanization, simplified) ----
+const RR_I=["g","kk","n","d","tt","r","m","b","pp","s","ss","","j","jj","ch","k","t","p","h"];
+const RR_V=["a","ae","ya","yae","eo","e","yeo","ye","o","wa","wae","oe","yo","u","wo","we","wi","yu","eu","ui","i"];
+const RR_F=["","k","k","k","n","n","n","t","l","k","m","l","l","l","p","l","m","p","p","t","t","ng","t","t","k","t","p","t"];
+function romanize(s){
+  let out="",prevF="";
+  for(const ch of String(s)){
+    const c=ch.charCodeAt(0);
+    if(c>=0xac00&&c<=0xd7a3){
+      const n=c-0xac00,i=Math.floor(n/588),v=Math.floor((n%588)/28),f=n%28;
+      let ini=RR_I[i];
+      if(i===5) ini = prevF==="l"?"l":(prevF?"n":"r");
+      if(i===11&&prevF&&prevF!=="ng"){const carry={k:"g",t:"d",p:"b",l:"r",n:"n",m:"m"}[prevF]||"";out=out.slice(0,-prevF.length)+(prevF==="n"||prevF==="m"?prevF:"");ini=carry;}
+      out+=ini+RR_V[v]+RR_F[f]; prevF=RR_F[f];
+    } else {out+=ch;prevF="";}
+  }
+  return out.replace(/(^|[\s(·\-\/])([a-z])/g,(m,a,b)=>a+b.toUpperCase());
+}
+
+// ---- name translation (server /api/tr, cached) ----
+const TRC = (()=>{try{return JSON.parse(localStorage.getItem("gilbeot.trc")||"{}")}catch(e){return {}}})();
+const trPending=new Set();
+function nm(ko){ // HTML for a Korean name in the user's language
+  if(!ko) return "";
+  const hit=Object.values(ST).find(s=>s.ko===ko||s.ko+"역"===ko);
+  if(hit) return esc(hit[L()]||hit.en);
+  const k=L()+"|"+ko;
+  if(TRC[k]) return esc(TRC[k]);
+  return `<span data-trko="${esc(ko)}">${esc(romanize(ko))}</span>`;
+}
+async function fillTr(){
+  if(!state.cfg) return;
+  const els=[...document.querySelectorAll("[data-trko]")];
+  const todo=[...new Set(els.map(e=>e.dataset.trko))].filter(ko=>!TRC[L()+"|"+ko]&&!trPending.has(L()+"|"+ko)).slice(0,12);
+  await Promise.all(todo.map(async ko=>{
+    const k=L()+"|"+ko; trPending.add(k);
+    try{const r=await fetch(`/api/tr?to=${L()}&q=${encodeURIComponent(ko)}`);const j=await r.json();if(j.text)TRC[k]=j.text;}catch(e){}
+  }));
+  try{localStorage.setItem("gilbeot.trc",JSON.stringify(TRC))}catch(e){}
+  document.querySelectorAll("[data-trko]").forEach(e=>{const v=TRC[L()+"|"+e.dataset.trko];if(v){e.textContent=v;e.removeAttribute("data-trko")}});
+}
+
+// ---- line / bus colors ----
+const SUB_COLOR={1:"#0052A4",2:"#00A84D",3:"#EF7C1C",4:"#00A5DE",5:"#996CAC",6:"#CD7C2F",7:"#747F00",8:"#E6186C",9:"#BDB092",21:"#7CA8D5",22:"#ED8B00",100:"#F5A200",101:"#0090D2",104:"#77C4A3",107:"#56AD2D",108:"#0C8E72",109:"#D4003B",110:"#FDA600",112:"#0054A6",113:"#B7C452",114:"#81A914",115:"#A17800",116:"#F5A200"};
+const SUB_SHORT={21:"I1",22:"I2",100:"SB",101:"A",104:"GJ",108:"GC",109:"S",113:"UI",114:"SH",115:"G",116:"SB"};
+const SEOUL_ID={101:"1065",104:"1063",108:"1067",109:"1077",113:"1092",114:"1093",116:"1075",100:"1075"};
+const BUS_COLOR={11:"#3D5BAB",12:"#56B948",13:"#F2B70A",14:"#E60012",4:"#E60012",15:"#E60012",5:"#6D5BA8",3:"#56B948",1:"#3D8FD1",2:"#3D8FD1",6:"#9B2743",10:"#3D8FD1"};
+const subBadge=code=>`<span class="lbadge" style="background:${SUB_COLOR[code]||"#666"}">${esc(SUB_SHORT[code]||code)}</span>`;
+const busBadge=(no,type)=>`<span class="lbadge" style="background:${BUS_COLOR[type]||"#3D5BAB"}">${esc(no)}</span>`;
+
+// ---- config & state ----
+Object.assign(state,{cfg:null,from:store.get("from",{type:"t1"}),to:store.get("to",null),routes:null,sel:store.get("sel",0),rDone:[],live:{},loading:false,err:"",pq:"",pres:null,rmode:store.get("rmode","live")});
+const AIRPORT={t1:{lat:37.4491,lng:126.4506,ko:"인천공항1터미널"},t2:{lat:37.4686,lng:126.4336,ko:"인천공항2터미널"}};
+const saveLive=()=>{store.set("from",state.from);store.set("to",state.to);store.set("sel",state.sel);store.set("rmode",state.rmode)};
+fetch("/api/config").then(r=>r.ok?r.json():null).then(c=>{state.cfg=c||{};if(!state.cfg.odsayKey&&state.rmode==="live")state.rmode="guide";render();}).catch(()=>{state.cfg={};state.rmode="guide";render();});
+
+// ---- ODsay ----
+const OD_LANG={en:1,ja:2,zh:3,vi:5,ru:1};
+async function odsay(s,e,lang){
+  const u=`https://api.odsay.com/v1/api/searchPubTransPathT?SX=${s.lng}&SY=${s.lat}&EX=${e.lng}&EY=${e.lat}&lang=${lang}&apiKey=${encodeURIComponent(state.cfg.odsayKey)}`;
+  const r=await fetch(u); const j=await r.json();
+  if(j.error){const er=Array.isArray(j.error)?j.error[0]:j.error;throw Object.assign(new Error(er.msg||er.message||"odsay"),{code:String(er.code)})}
+  return j.result;
+}
+function getFrom(){
+  return new Promise((ok,no)=>{
+    if(state.from.type!=="loc") return ok(AIRPORT[state.from.type]);
+    if(!navigator.geolocation) return no(new Error("noloc"));
+    navigator.geolocation.getCurrentPosition(p=>{state.loc={lat:p.coords.latitude,lng:p.coords.longitude};ok({...state.loc,ko:""})},()=>no(new Error("noloc")),{timeout:10000,maximumAge:60000});
+  });
+}
+async function findRoute(){
+  if(!state.to){state.err=lt("pickTo");render();return}
+  state.loading=true;state.err="";state.routes=null;render();
+  try{
+    const s=await getFrom();
+    const [loc,ko]=await Promise.all([odsay(s,state.to,OD_LANG[L()]),odsay(s,state.to,0)]);
+    const pl=(loc.path||[]), pk=(ko.path||[]);
+    state.routes=pl.slice(0,5).map((p,i)=>({loc:p,ko:(pk[i]&&pk[i].subPath.length===p.subPath.length)?pk[i]:p,start:s}));
+    state.sel=0;state.rDone=[];
+    if(!state.routes.length) state.err=lt("apiErr");
+  }catch(e){
+    state.err = e.message==="noloc"?lt("needLoc"):(e.code==="-98"?lt("tooClose"):lt("apiErr")+(e.code?` (${e.code})`:""));
+  }
+  state.loading=false;saveLive();render();
+}
+
+// ---- steps from a route ----
+function liveSteps(R){
+  const steps=[];const sp=R.loc.subPath, kp=R.ko.subPath;
+  for(let i=0;i<sp.length;i++){
+    const a=sp[i], k=kp[i]||a, nx=sp[i+1], nk=kp[i+1];
+    if(a.trafficType===3){
+      if(!a.distance) continue;
+      const to = nx? (nx.startName) : (state.to? null : "");
+      let text=lt("walkTo",{d:a.distance,m:Math.max(1,a.sectionTime),to: nx? `<b>${nx.trafficType===1?esc(nx.startName):esc(nx.startName)}</b>` : `<b>${esc(lt("walkDest"))}</b>`});
+      if(nx&&nx.trafficType===1&&nx.startExitNo) text+=lt("enterExit",nx.startExitNo);
+      steps.push({html:text,c:"var(--line)",sign:nk?{ko:nk.startName,tr:nx.startName}:null,kind:"walk"});
+    } else if(a.trafficType===1){
+      const ln=a.lane[0], code=ln.subwayCode, col=SUB_COLOR[code]||"#666";
+      let text=lt("subBoard",{st:`<b>${esc(a.startName)}</b>`,line:`<b>${esc(ln.name)}</b>`,way:`<b>${esc(a.way)}</b>`});
+      if(a.door&&a.door!=="null") text+=lt("door",esc(a.door));
+      steps.push({html:text,c:col,badge:subBadge(code),sign:{ko:`${k.lane[0].name} · ${k.way} 방면`,tr:`${ln.name} · ${a.way}`},live:{t:"sub",st:k.startName,code,way:k.way,key:"s"+i},kind:"train"});
+      steps.push({html:lt("subRide",{n:a.stationCount,m:a.sectionTime,st:`<b>${esc(a.endName)}</b>`}),c:col,badge:subBadge(code),sign:{ko:k.endName,tr:a.endName},kind:"train"});
+      if(a.endExitNo&&(!nx||nx.trafficType===3)) steps.push({html:lt("exitNo",esc(a.endExitNo)),exit:a.endExitNo,sign:{ko:`${a.endExitNo}번 출구`,tr:"Exit "+a.endExitNo},kind:"exit"});
+    } else if(a.trafficType===2){
+      const ln=a.lane[0], stops=(a.passStopList&&a.passStopList.stations)||[], kst=(k.passStopList&&k.passStopList.stations)||[];
+      const next=stops[1]?stops[1].stationName:a.endName;
+      const col=BUS_COLOR[ln.type]||"#3D5BAB";
+      steps.push({html:lt("busBoard",{st:esc(a.startName),ars:a.startArsID&&a.startArsID!=="-"?esc(a.startArsID):"",no:`<b>${esc(ln.busNo)}</b>`,next:esc(next)}),c:col,badge:busBadge(ln.busNo,ln.type),
+        sign:{ko:`${k.startName} → ${kst[1]?kst[1].stationName:k.endName}`,tr:`${a.startName} → ${next}`},live:a.startArsID&&a.startArsID!=="-"?{t:"bus",ars:a.startArsID,no:ln.busNo,key:"b"+i}:null,kind:"bus"});
+      steps.push({html:lt("busRideL",{n:a.stationCount,m:a.sectionTime,st:`<b>${esc(a.endName)}</b>`}),c:col,badge:busBadge(ln.busNo,ln.type),sign:{ko:k.endName,tr:a.endName},kind:"bus"});
+    }
+  }
+  steps.push({html:lt("arriveL",`<b>${nm(state.to.ko)}</b>`),kind:"arrive",sign:{ko:state.to.ko,tr:""}});
+  return steps;
+}
+function routeSummary(p){
+  const i=p.info; const parts=p.subPath.filter(s=>s.trafficType!==3).map(s=>s.trafficType===1?subBadge(s.lane[0].subwayCode):busBadge(s.lane[0].busNo,s.lane[0].type));
+  const walk=p.subPath.filter(s=>s.trafficType===3).reduce((a,s)=>a+s.distance,0);
+  const xf=(i.busTransitCount||0)+(i.subwayTransitCount||0)-1;
+  return {min:i.totalTime,fare:i.payment,xf:Math.max(0,xf),walk,badges:parts.join('<span class="muted">›</span>')};
+}
+
+// ---- live arrivals ----
+async function loadLive(L0){
+  state.live[L0.key]={loading:true};updLive(L0);
+  try{
+    if(L0.t==="sub"){
+      if(!state.cfg.subway){state.live[L0.key]={off:true};return updLive(L0)}
+      const j=await (await fetch(`/api/subway?st=${encodeURIComponent(L0.st)}`)).json();
+      const sid=SEOUL_ID[L0.code]||(L0.code<=9?String(1000+ +L0.code):"");
+      let items=(j.items||[]).filter(x=>!sid||x.subwayId===sid);
+      items.forEach(x=>x.mine=L0.way&&x.dir&&x.dir.includes(L0.way));
+      items.sort((a,b)=>(b.mine-a.mine)||(a.sec-b.sec));
+      state.live[L0.key]={items:items.slice(0,4),at:Date.now()};
+    } else {
+      if(!state.cfg.bus){state.live[L0.key]={off:true};return updLive(L0)}
+      const j=await (await fetch(`/api/bus?ars=${encodeURIComponent(L0.ars)}&no=${encodeURIComponent(L0.no)}`)).json();
+      state.live[L0.key]={bus:(j.matched?j.items:[]),at:Date.now(),area:!j.matched};
+    }
+  }catch(e){state.live[L0.key]={items:[],err:true}}
+  updLive(L0);
+}
+function busMsg(m){
+  if(!m) return "";
+  if(/곧 도착/.test(m)) return lt("soon");
+  if(/운행종료/.test(m)) return lt("ended");
+  if(/출발대기/.test(m)) return lt("waiting");
+  const mm=m.match(/(\d+)분/), ss=m.match(/(\d+)번째 전/);
+  return [mm?lt("minLeft",mm[1]):"", ss?lt("stopsLeft",ss[1]):""].filter(Boolean).join(" · ")||m;
+}
+function liveHTML(L0){
+  const d=state.live[L0.key]; if(!d) return "";
+  if(d.loading) return `<div class="small muted">${esc(lt("searching"))}</div>`;
+  if(d.off) return `<div class="note">${esc(lt("liveOff"))}</div>`;
+  if(L0.t==="sub"){
+    if(!d.items||!d.items.length) return `<div class="note">${esc(lt("noLive"))}</div>`;
+    return `<div class="results">${d.items.map(x=>{const when=x.sec>0?lt("minLeft",Math.max(1,Math.round(x.sec/60))):tr(LT.arvl[x.code]||LT.arvl[99]);
+      return `<div class="res" style="${x.mine?"border-color:var(--ok)":""}"><span><b>${esc(when)}</b>${x.mine?` <span class="chip" style="color:var(--ok);border-color:var(--ok);padding:0 7px">${esc(lt("yourDir"))}</span>`:""}<br><span class="ko">${esc(x.dir)} · ${esc(x.msg)}</span></span></div>`}).join("")}</div>`;
+  }
+  if(d.area||!d.bus||!d.bus.length) return `<div class="note">${esc(lt("noLive"))} ${esc(lt("busArea"))}</div>`;
+  return `<div class="results">${d.bus.map(b=>`<div class="res"><span><b>${esc(busMsg(b.m1))}</b> · ${esc(busMsg(b.m2))}<br><span class="ko">${esc(b.no)} · ${esc(b.dir||"")} · ${esc(b.m1)}</span></span></div>`).join("")}</div>`;
+}
+function updLive(L0){const el=document.getElementById("live-"+L0.key);if(el)el.innerHTML=liveHTML(L0);}
+let liveTimer=null;
+function autoLive(){clearInterval(liveTimer);liveTimer=setInterval(()=>{if(document.hidden||state.tab!=="route")return;Object.values(LIVE_REG).forEach(L0=>{if(state.live[L0.key]&&!state.live[L0.key].loading)loadLive(L0)})},30000)}
+const LIVE_REG={};
+
+// ---- place search ----
+let pqTimer=null;
+function searchPlaces(q){
+  state.pq=q; clearTimeout(pqTimer);
+  const local=PLACES.filter(p=>q&&[p.ko,p.en,p.ja,p.zh,p.vi,p.ru].some(v=>(v||"").toLowerCase().includes(q.toLowerCase()))).map(p=>({ko:p.ko,addr:p.addr,lat:p.lat,lng:p.lng,local:p}));
+  state.pres={items:local,loading:!!(q&&state.cfg&&state.cfg.places)}; updPres();
+  if(!q||!state.cfg||!state.cfg.places) return;
+  pqTimer=setTimeout(async()=>{
+    try{const j=await (await fetch(`/api/places?lang=${L()}&q=${encodeURIComponent(q)}`)).json();
+      if(state.pq!==q) return;
+      state.pres={items:[...local,...(j.items||[])].slice(0,15),loading:false};}catch(e){state.pres={items:local,loading:false}}
+    updPres();
+  },350);
+}
+function presHTML(){
+  const r=state.pres; if(!r) return "";
+  return (r.loading?`<div class="small muted">${esc(lt("searching"))}</div>`:"")+r.items.map((p,i)=>`<button class="res" data-to="${i}"><span><b>${p.local?esc(tr(p.local)):nm(p.ko)}</b><br><span class="ko">${esc(p.ko)}${p.addr?" · "+esc(p.addr):""}</span></span><span class="chip">${esc(p.cat||"›")}</span></button>`).join("");
+}
+function updPres(){const el=document.getElementById("pres");if(el){el.innerHTML=presHTML();fillTr();}}
+
+// ---- views ----
+function vRouteLive(){
+  const f=state.from.type, to=state.to;
+  let h=`<section class="panel">
+    <div class="field"><label>${esc(lt("from"))}</label>
+      <div class="seg" style="grid-template-columns:1fr 1fr 1fr"><button data-from="loc" aria-pressed="${f==="loc"}">📍 ${esc(lt("here"))}</button><button data-from="t1" aria-pressed="${f==="t1"}">${esc(stN("t1"))}</button><button data-from="t2" aria-pressed="${f==="t2"}">${esc(stN("t2"))}</button></div></div>
+    <div class="field"><label for="pq">${esc(lt("to"))}</label>
+      <input type="search" id="pq" placeholder="${esc(lt("searchTo"))}" value="${esc(state.pq)}" autocomplete="off">
+      <div class="results" id="pres">${presHTML()}</div>
+      <div class="row">${PLACES.filter(p=>p.route||["gbg","tower","ddpplace"].includes(p.id)).map(p=>`<button class="chip" data-toplace="${p.id}">${esc(tr(p))}</button>`).join("")}</div></div>
+    ${to?`<div class="board"><div class="band" style="background:var(--accent)"></div><div class="bd"><div class="nm" style="flex:1"><div class="eyebrow">${esc(lt("chosen"))}</div><div class="ko">${esc(to.ko)}</div><div class="tr">${to.local?esc(tr(to.local)):nm(to.ko)}${to.addr?` · <span class="ko">${esc(to.addr)}</span>`:""}</div></div></div></div>`:""}
+    <button class="btn" data-find ${state.loading?"disabled":""}>${esc(state.loading?lt("searching"):lt("find"))}</button>
+    ${state.err?`<p class="note">${esc(state.err)}</p>`:""}
+  </section>`;
+  if(state.routes&&state.routes.length){
+    h+=`<section class="panel"><h2>${esc(lt("options"))}</h2><div class="results">${state.routes.map((R,i)=>{const s=routeSummary(R.loc);
+      return `<button class="res" data-sel="${i}" style="${i===state.sel?"border-color:var(--accent);background:var(--accent-soft)":""}"><span><b>${s.min} ${esc(t("min"))}</b> · ₩${(s.fare||0).toLocaleString()} · ${s.xf} ${esc(t("transfers"))} · ${esc(lt("walk"))} ${s.walk} m<br><span class="row" style="gap:4px;margin-top:4px">${s.badges}</span></span></button>`}).join("")}</div></section>`;
+    const R=state.routes[state.sel]; const steps=liveSteps(R);
+    Object.keys(LIVE_REG).forEach(k=>delete LIVE_REG[k]);
+    const done=state.rDone;
+    h+=`<section class="panel"><div class="row small muted"><span>${esc(t("progress"))}: ${done.length}/${steps.length}</span><button class="linkbtn" data-rreset>${esc(t("reset"))}</button></div>
+      <div class="steps">${steps.map((s,i)=>{if(s.live)LIVE_REG[s.live.key]=s.live;const d=done.includes(i);
+        return `<div class="step ${d?"done":""}" style="--stepc:${s.c||"var(--line)"}"><div class="snum">${s.exit?'<span style="font-size:11px">EXIT</span>':i+1}</div><div class="scard">
+          <div class="stitle" style="font-weight:500">${s.html}</div>
+          ${s.sign?`<div class="sign">${s.exit?`<span class="exitbadge">${esc(s.exit)}</span>`:(s.badge||"")}<div><div class="ko">${esc(s.sign.ko)}</div><div class="tr">${esc(t("lookFor"))}${s.sign.tr?" · "+esc(s.sign.tr):""}</div></div></div>`:""}
+          ${s.live?`<div id="live-${s.live.key}">${liveHTML(s.live)}</div>`:""}
+          <div class="sacts"><button class="btn sm ${d?"ghost":""}" data-rdone="${i}">${d?esc(t("undo")):"✓ "+esc(t("markDone"))}</button>
+          ${s.sign?`<button class="btn sm ghost" data-show="${esc(s.sign.ko)}" data-showtr="${esc(s.sign.tr)}">${esc(t("showKo"))}</button>`:""}
+          ${s.live?`<button class="btn sm ghost" data-live="${s.live.key}">⟳ ${esc(lt("liveArr"))}</button>`:""}
+          ${s.kind==="arrive"?`<button class="btn sm ghost" data-tab="card">${esc(t("tabCard"))}</button>`:""}</div></div></div>`}).join("")}</div></section>`;
+    setTimeout(()=>{Object.values(LIVE_REG).forEach(L0=>{if(!state.live[L0.key])loadLive(L0)});autoLive()},0);
+  }
+  return h+tmoneyPanel();
+}
+function vRouteWrap(){
+  const hasLive=state.cfg&&state.cfg.odsayKey;
+  const seg=`<div class="seg"><button data-rmode="live" aria-pressed="${state.rmode==="live"}">${esc(lt("live"))}</button><button data-rmode="guide" aria-pressed="${state.rmode==="guide"}">${esc(lt("guide"))}</button></div>`;
+  if(state.rmode==="live"){
+    if(!state.cfg) return seg+`<p class="muted">${esc(lt("searching"))}</p>`;
+    if(!hasLive) return seg+`<p class="note">${esc(lt("noKey"))}</p>`+vRoute();
+    return seg+vRouteLive();
+  }
+  return seg+vRoute();
+}
+
+// ---- Leaflet map ----
+let lmap=null;
+function vMapLive(){
+  const to=state.to;
+  const P=to&&to.local?to.local:null;
+  return `<section class="panel"><h1>${esc(t("tabMap"))}</h1>
+    <div id="lmap" style="height:360px;border-radius:12px;border:1px solid var(--line);overflow:hidden;background:var(--surface2)"></div>
+    <div class="row"><button class="btn sm ghost" id="locbtn">📍 ${esc(t("myLoc"))}</button><span class="small muted" id="locmsg">${esc(state.locMsg)}</span></div></section>
+    ${to?placePanel(P||{id:"x",ko:to.ko,addr:to.addr,lat:to.lat,lng:to.lng,en:romanize(to.ko)}):vMap()}`;
+}
+function drawLeaflet(){
+  const el=document.getElementById("lmap"); if(!el) return;
+  const LF=window.L;
+  if(!LF||!LF.map){el.innerHTML=`<p class="small muted" style="padding:12px">${esc(t("mapTip"))}</p>`;return}
+  if(lmap){lmap.remove();lmap=null}
+  lmap=LF.map(el,{zoomControl:true}).setView([37.5547,126.9707],12);
+  LF.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(lmap);
+  const pts=[];
+  const R=state.routes&&state.routes[state.sel];
+  if(R){
+    let prev=[R.start.lat,R.start.lng]; pts.push(prev);
+    R.loc.subPath.forEach(s=>{
+      const st=(s.passStopList&&s.passStopList.stations)||[];
+      if(s.trafficType===3) return;
+      const col=s.trafficType===1?(SUB_COLOR[s.lane[0].subwayCode]||"#666"):(BUS_COLOR[s.lane[0].type]||"#3D5BAB");
+      const line=st.map(x=>[+x.y,+x.x]);
+      if(line.length){LF.polyline([prev,line[0]],{color:"#888",weight:3,dashArray:"4 6"}).addTo(lmap);LF.polyline(line,{color:col,weight:6,opacity:.9}).addTo(lmap);
+        LF.circleMarker(line[0],{radius:6,color:col,fillColor:"#fff",fillOpacity:1,weight:3}).addTo(lmap).bindTooltip(st[0].stationName);
+        LF.circleMarker(line[line.length-1],{radius:6,color:col,fillColor:"#fff",fillOpacity:1,weight:3}).addTo(lmap).bindTooltip(st[st.length-1].stationName);
+        prev=line[line.length-1];pts.push(...line);}
+    });
+    if(state.to){LF.polyline([prev,[state.to.lat,state.to.lng]],{color:"#888",weight:3,dashArray:"4 6"}).addTo(lmap)}
+    LF.circleMarker([R.start.lat,R.start.lng],{radius:8,color:"#fff",fillColor:"#1E8E5A",fillOpacity:1,weight:3}).addTo(lmap).bindTooltip(lt("from"));
+  }
+  if(state.to){LF.circleMarker([state.to.lat,state.to.lng],{radius:9,color:"#fff",fillColor:"#E6186C",fillOpacity:1,weight:3}).addTo(lmap).bindTooltip(state.to.ko,{permanent:true,direction:"top"});pts.push([state.to.lat,state.to.lng])}
+  if(state.loc){LF.circleMarker([state.loc.lat,state.loc.lng],{radius:7,color:"#fff",fillColor:"#2F80ED",fillOpacity:1,weight:3}).addTo(lmap).bindTooltip(t("youHere"));pts.push([state.loc.lat,state.loc.lng])}
+  if(pts.length>1) lmap.fitBounds(pts,{padding:[24,24]}); else if(pts.length) lmap.setView(pts[0],15);
+}
+
+// ---- route station names for sign check ----
+function liveRouteNames(){
+  const R=state.routes&&state.routes[state.sel]; const m=new Map(); if(!R) return m;
+  R.ko.subPath.forEach((s,i)=>{const ls=R.loc.subPath[i];if(s.trafficType===3)return;
+    const a=(s.passStopList&&s.passStopList.stations)||[], b=(ls&&ls.passStopList&&ls.passStopList.stations)||[];
+    a.forEach((x,j)=>m.set(x.stationName,b[j]?b[j].stationName:""));});
+  return m;
+}
+
+// ---- events ----
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return; const ds=b.dataset;
+  if(ds.rmode){state.rmode=ds.rmode;saveLive();render();return}
+  if(ds.from){state.from={type:ds.from};state.routes=null;saveLive();render();return}
+  if(ds.to!==undefined){const p=state.pres.items[+ds.to];state.to={ko:p.ko,addr:p.addr||"",lat:p.lat,lng:p.lng,local:p.local||null};state.pres=null;state.pq="";state.routes=null;state.hotel={name:"",addr:""};saveLive();render();return}
+  if(ds.toplace){const p=place(ds.toplace);state.to={ko:p.ko,addr:p.addr||"",lat:p.lat,lng:p.lng,local:p};state.dest=p.route?p.id:state.dest;state.routes=null;state.hotel={name:"",addr:""};saveLive();render();return}
+  if("find" in ds){findRoute();return}
+  if(ds.sel!==undefined){state.sel=+ds.sel;state.rDone=[];state.live={};saveLive();render();return}
+  if(ds.rdone!==undefined){const i=+ds.rdone;state.rDone=state.rDone.includes(i)?state.rDone.filter(x=>x!==i):[...state.rDone,i];render();return}
+  if("rreset" in ds){state.rDone=[];render();return}
+  if(ds.live){const L0=LIVE_REG[ds.live];if(L0)loadLive(L0);return}
+});
+document.addEventListener("input",e=>{if(e.target.id==="pq")searchPlaces(e.target.value)});
+
+render();
+if(firstRun) langSheet(true);
+</script></body></html>
